@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>入出荷予定一覧</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='12' fill='%231976D2'/><text x='50' y='74' font-family='sans-serif' font-size='55' font-weight='bold' fill='white' text-anchor='middle'>入出</text></svg>">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 12px;
+      background: #f5f5f5;
+      color: #333;
+    }
+
+    /* ヘッダー */
+    .header {
+      background: #1976D2;
+      color: white;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .header h1 { font-size: 16px; font-weight: 700; margin-right: 8px; }
+    .nav-btn {
+      background: rgba(255,255,255,0.2);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,0.35); }
+    #current-month {
+      font-size: 15px;
+      font-weight: 700;
+      min-width: 100px;
+      text-align: center;
+    }
+    .filter-btn {
+      padding: 4px 10px;
+      border-radius: 4px;
+      border: 1px solid rgba(255,255,255,0.4);
+      background: rgba(255,255,255,0.15);
+      color: white;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    .filter-btn.active { background: rgba(255,255,255,0.9); color: #1976D2; font-weight: 700; }
+    .filter-btn:hover { background: rgba(255,255,255,0.3); }
+    .filter-btn.active:hover { background: rgba(255,255,255,0.95); }
+    .add-btn {
+      margin-left: auto;
+      background: #43a047;
+      border: none;
+      color: white;
+      padding: 5px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .add-btn:hover { background: #388e3c; }
+
+    /* テーブルコンテナ */
+    .table-container {
+      overflow-x: auto;
+      padding: 12px;
+    }
+
+    table {
+      border-collapse: collapse;
+      min-width: 1400px;
+      background: white;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    }
+
+    /* ヘッダー行 */
+    thead th {
+      background: #1976D2;
+      color: white;
+      padding: 6px 6px;
+      text-align: center;
+      white-space: nowrap;
+      border: 1px solid #1565C0;
+      font-weight: 700;
+      font-size: 11px;
+      position: sticky;
+      top: 42px;
+      z-index: 10;
+    }
+
+    /* データ行 */
+    tbody tr { border-bottom: 1px solid #e0e0e0; }
+    tbody td {
+      padding: 4px 6px;
+      border-right: 1px solid #e0e0e0;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+
+    /* 日付・曜日セル */
+    .td-date {
+      text-align: center;
+      font-weight: 700;
+      font-size: 12px;
+      background: inherit;
+      border-right: 2px solid #bbb !important;
+      min-width: 70px;
+    }
+    .td-dow {
+      text-align: center;
+      font-weight: 700;
+      font-size: 12px;
+      border-right: 2px solid #bbb !important;
+      min-width: 30px;
+    }
+
+    /* 行の色分け */
+    tr.sunday  { background: #fce4ec; }
+    tr.saturday { background: #e3f2fd; }
+    tr.holiday  { background: #fce4ec; }
+    tr.weekday  { background: white; }
+    tr.sunday:hover, tr.saturday:hover, tr.holiday:hover, tr.weekday:hover {
+      filter: brightness(0.96);
+    }
+
+    /* 入荷/出荷インジケーター */
+    .type-badge {
+      display: inline-block;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .type-badge.nyuuka  { background: #e3f2fd; color: #1976D2; border: 1px solid #90caf9; }
+    .type-badge.shukka  { background: #e8f5e9; color: #2E7D32; border: 1px solid #a5d6a7; }
+
+    /* 予定状態バッジ */
+    .status-badge {
+      display: inline-block;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-size: 10px;
+    }
+    .status-badge.kakutei { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; font-weight: 700; }
+    .status-badge.yotei   { background: #f3e5f5; color: #6a1b9a; border: 1px solid #ce93d8; }
+
+    /* 空行（入出荷なし） */
+    tr.empty-day td { color: #bbb; }
+
+    /* 操作ボタン */
+    .op-btn {
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+      padding: 2px 6px;
+      cursor: pointer;
+      font-size: 11px;
+      margin: 1px;
+    }
+    .op-btn.edit  { color: #1976D2; border-color: #90caf9; }
+    .op-btn.del   { color: #c62828; border-color: #ef9a9a; }
+    .op-btn.edit:hover { background: #e3f2fd; }
+    .op-btn.del:hover  { background: #ffebee; }
+    .op-btn.add-day {
+      color: #43a047;
+      border-color: #a5d6a7;
+      font-size: 14px;
+      padding: 1px 8px;
+    }
+    .op-btn.add-day:hover { background: #e8f5e9; }
+
+    /* ローディング */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: #888;
+      font-size: 14px;
+    }
+
+    /* ────── モーダル ────── */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 8px;
+      padding: 24px;
+      width: 520px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .modal h2 {
+      font-size: 15px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #1976D2;
+      color: #1976D2;
+    }
+    .form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 10px;
+      align-items: flex-start;
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      flex: 1;
+    }
+    .form-group label {
+      font-size: 11px;
+      color: #666;
+      font-weight: 700;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      padding: 5px 8px;
+      font-size: 12px;
+      font-family: inherit;
+      width: 100%;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #1976D2;
+      box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+    }
+    .autofill-hint {
+      font-size: 10px;
+      color: #43a047;
+      margin-top: 2px;
+    }
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #eee;
+    }
+    .btn-save {
+      background: #1976D2;
+      color: white;
+      border: none;
+      padding: 7px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .btn-save:hover { background: #1565C0; }
+    .btn-cancel {
+      background: white;
+      color: #666;
+      border: 1px solid #ccc;
+      padding: 7px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .btn-cancel:hover { background: #f5f5f5; }
+    .btn-delete-modal {
+      background: #ffebee;
+      color: #c62828;
+      border: 1px solid #ef9a9a;
+      padding: 7px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      margin-right: auto;
+    }
+    .btn-delete-modal:hover { background: #ffcdd2; }
+
+    /* トースト通知 */
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #323232;
+      color: white;
+      padding: 10px 18px;
+      border-radius: 4px;
+      font-size: 13px;
+      z-index: 300;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.25s;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: #2E7D32; }
+    .toast.error   { background: #c62828; }
+  </style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header">
+  <h1>入・出荷予定一覧</h1>
+  <button class="nav-btn" onclick="changeMonth(-1)">◀ 前月</button>
+  <span id="current-month">読み込み中...</span>
+  <button class="nav-btn" onclick="changeMonth(1)">次月 ▶</button>
+  <span style="margin-left:8px; display:flex; gap:4px;">
+    <button class="filter-btn active" id="filter-all"    onclick="setFilter('all')">全表示</button>
+    <button class="filter-btn"        id="filter-nyuuka" onclick="setFilter('入荷')">入荷のみ</button>
+    <button class="filter-btn"        id="filter-shukka" onclick="setFilter('出荷')">出荷のみ</button>
+  </span>
+  <button class="add-btn" onclick="openModal(null)">＋ 新規追加</button>
+</div>
+
+<!-- テーブル -->
+<div class="table-container">
+  <div id="loading" class="loading">データを読み込み中...</div>
+  <table id="delivery-table" style="display:none;">
+    <thead>
+      <tr>
+        <th style="width:70px;">日付</th>
+        <th style="width:32px;">曜</th>
+        <th style="width:65px;">入荷/出荷</th>
+        <th style="width:65px;">時間帯</th>
+        <th style="width:55px;">予定状態</th>
+        <th style="width:58px;">工番</th>
+        <th style="width:78px;">機械ユニット</th>
+        <th style="width:160px;">製品</th>
+        <th style="width:100px;">From or to</th>
+        <th style="width:80px;">輸送手段</th>
+        <th style="width:120px;">サイズ(WxBxH)/単</th>
+        <th style="width:65px;">単重</th>
+        <th style="width:45px;">数量</th>
+        <th style="width:45px;">単位</th>
+        <th style="width:68px;">営業担当</th>
+        <th style="width:68px;">製造資材</th>
+        <th style="width:68px;">組立担当</th>
+        <th style="width:180px;">備考</th>
+        <th style="width:65px;">操作</th>
+      </tr>
+    </thead>
+    <tbody id="table-body"></tbody>
+  </table>
+</div>
+
+<!-- 追加/編集モーダル -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal">
+    <h2 id="modal-title">入出荷エントリ 追加</h2>
+    <input type="hidden" id="edit-id">
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2;">
+        <label>日付 *</label>
+        <input type="date" id="f-date">
+      </div>
+      <div class="form-group" style="flex:1.5;">
+        <label>入荷 / 出荷 *</label>
+        <select id="f-type">
+          <option value="">選択...</option>
+          <option value="入荷">入荷</option>
+          <option value="出荷">出荷</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>時間帯</label>
+        <select id="f-time-slot">
+          <option value=""></option>
+          <option value="午前">午前</option>
+          <option value="午後">午後</option>
+          <option value="昼前後">昼前後</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>予定状態</label>
+        <select id="f-status">
+          <option value=""></option>
+          <option value="予定">予定</option>
+          <option value="確定">確定</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:1.2;">
+        <label>工番</label>
+        <input type="text" id="f-project-number" placeholder="例: 8810" oninput="onProjectNumberInput()">
+        <span class="autofill-hint" id="autofill-hint" style="display:none;">✓ 工程表から自動補完しました</span>
+      </div>
+      <div class="form-group" style="flex:1.5;">
+        <label>機械ユニット</label>
+        <input type="text" id="f-machine-unit" placeholder="例: PCLU">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>製品名</label>
+      <input type="text" id="f-product-name" placeholder="例: ジーローターポンプ">
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>From or to</label>
+        <input type="text" id="f-from-to">
+      </div>
+      <div class="form-group">
+        <label>輸送手段</label>
+        <input type="text" id="f-transport" placeholder="例: 自社便">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group" style="flex:2;">
+        <label>サイズ (WxBxH/単)</label>
+        <input type="text" id="f-size" placeholder="例: 800x600x500mm">
+      </div>
+      <div class="form-group">
+        <label>単重</label>
+        <input type="text" id="f-weight" placeholder="例: 約700kg">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>数量</label>
+        <input type="text" id="f-quantity" placeholder="1">
+      </div>
+      <div class="form-group">
+        <label>単位</label>
+        <input type="text" id="f-unit" placeholder="例: P/L, 式">
+      </div>
+      <div class="form-group">
+        <label>営業担当</label>
+        <input type="text" id="f-sales-rep">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>製造資材</label>
+        <input type="text" id="f-mfg-rep">
+      </div>
+      <div class="form-group">
+        <label>組立担当</label>
+        <input type="text" id="f-assembly-rep">
+      </div>
+    </div>
+
+    <div class="form-group" style="margin-bottom:10px;">
+      <label>備考</label>
+      <textarea id="f-note" rows="2"></textarea>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn-delete-modal" id="btn-delete-modal" style="display:none;" onclick="deleteEntry()">削除</button>
+      <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
+      <button class="btn-save" onclick="saveEntry()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- トースト -->
+<div class="toast" id="toast"></div>
+
+<script>
+  const S_URL = "https://dgekjzkrybrswsxlcbvh.supabase.co";
+  const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZWtqemtyeWJyc3dzeGxjYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4ODQ3MjIsImV4cCI6MjA4NDQ2MDcyMn0.BsEj53lV3p76yE9fMPTaLn7ocKTNzYPTqIAnBafYItU";
+
+  const sb = supabase.createClient(S_URL, S_KEY);
+
+  let currentYear  = new Date().getFullYear();
+  let currentMonth = new Date().getMonth() + 1; // 1-indexed
+  let deliveries   = [];
+  let holidaySet   = new Set();
+  let currentFilter = 'all';
+  let autoFillTimer = null;
+
+  const DOW_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
+
+  // ─── 初期化 ───────────────────────────────────────────
+  async function init() {
+    const { data: hols } = await sb.from('holidays').select('date');
+    if (hols) hols.forEach(r => holidaySet.add(r.date.slice(0, 10)));
+    await loadAndRender();
+  }
+
+  async function loadAndRender() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('delivery-table').style.display = 'none';
+
+    const startDate = `${currentYear}-${String(currentMonth).padStart(2,'0')}-01`;
+    const lastDay   = new Date(currentYear, currentMonth, 0).getDate();
+    const endDate   = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+
+    const { data, error } = await sb.from('deliveries')
+      .select('*')
+      .gte('date', startDate)
+      .lte('date', endDate)
+      .order('date')
+      .order('created_at');
+
+    if (error) { showToast('データの読み込みに失敗しました', 'error'); return; }
+    deliveries = data || [];
+    renderCalendar();
+  }
+
+  // ─── カレンダー描画 ────────────────────────────────────
+  function renderCalendar() {
+    const lastDay = new Date(currentYear, currentMonth, 0).getDate();
+    document.getElementById('current-month').textContent =
+      `${currentYear}年 ${currentMonth}月`;
+
+    const tbody = document.getElementById('table-body');
+    tbody.innerHTML = '';
+
+    for (let d = 1; d <= lastDay; d++) {
+      const dateObj  = new Date(currentYear, currentMonth - 1, d);
+      const dow      = dateObj.getDay(); // 0=日, 6=土
+      const dateStr  = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const isHol    = holidaySet.has(dateStr);
+      const rowClass = dow === 0 || isHol ? 'sunday' : dow === 6 ? 'saturday' : 'weekday';
+
+      const dayEntries = deliveries.filter(e => {
+        if (e.date.slice(0,10) !== dateStr) return false;
+        if (currentFilter === 'all') return true;
+        return e.type === currentFilter;
+      });
+
+      if (dayEntries.length === 0) {
+        // 入出荷なし → 1行（日付・曜日・＋ボタンのみ）
+        const tr = document.createElement('tr');
+        tr.className = rowClass + ' empty-day';
+        tr.innerHTML = `
+          <td class="td-date">${currentMonth}/${d}</td>
+          <td class="td-dow" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>
+          <td colspan="16"></td>
+          <td style="text-align:center;">
+            <button class="op-btn add-day" onclick="openModal('${dateStr}')" title="この日にエントリを追加">＋</button>
+          </td>`;
+        tbody.appendChild(tr);
+      } else {
+        dayEntries.forEach((entry, idx) => {
+          const tr = document.createElement('tr');
+          tr.className = rowClass;
+          const dateCell = idx === 0
+            ? `<td class="td-date" rowspan="${dayEntries.length}">${currentMonth}/${d}</td>
+               <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
+            : '';
+          tr.innerHTML = `
+            ${dateCell}
+            <td style="text-align:center;">${typeBadge(entry.type)}</td>
+            <td style="text-align:center;">${entry.time_slot || ''}</td>
+            <td style="text-align:center;">${statusBadge(entry.status)}</td>
+            <td style="text-align:center;">${entry.project_number || ''}</td>
+            <td>${entry.machine_unit || ''}</td>
+            <td>${entry.product_name || ''}</td>
+            <td>${entry.from_to || ''}</td>
+            <td>${entry.transport || ''}</td>
+            <td>${entry.size || ''}</td>
+            <td style="text-align:right;">${entry.weight || ''}</td>
+            <td style="text-align:right;">${entry.quantity || ''}</td>
+            <td style="text-align:center;">${entry.unit || ''}</td>
+            <td>${entry.sales_rep || ''}</td>
+            <td>${entry.mfg_rep || ''}</td>
+            <td>${entry.assembly_rep || ''}</td>
+            <td>${entry.note || ''}</td>
+            <td style="text-align:center;">
+              <button class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
+              ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}
+            </td>`;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('delivery-table').style.display = '';
+  }
+
+  function dowColor(dow, isHol) {
+    if (dow === 0 || isHol) return '#c62828';
+    if (dow === 6) return '#1565C0';
+    return '#333';
+  }
+
+  function typeBadge(type) {
+    if (!type) return '';
+    const cls = type === '入荷' ? 'nyuuka' : 'shukka';
+    return `<span class="type-badge ${cls}">${type}</span>`;
+  }
+
+  function statusBadge(status) {
+    if (!status) return '';
+    const cls = status === '確定' ? 'kakutei' : 'yotei';
+    return `<span class="status-badge ${cls}">${status}</span>`;
+  }
+
+  // ─── ナビゲーション ────────────────────────────────────
+  function changeMonth(delta) {
+    currentMonth += delta;
+    if (currentMonth > 12) { currentMonth = 1;  currentYear++; }
+    if (currentMonth < 1)  { currentMonth = 12; currentYear--; }
+    loadAndRender();
+  }
+
+  function setFilter(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    const map = { all: 'filter-all', '入荷': 'filter-nyuuka', '出荷': 'filter-shukka' };
+    document.getElementById(map[filter]).classList.add('active');
+    renderCalendar();
+  }
+
+  // ─── モーダル ──────────────────────────────────────────
+  function openModal(dateStr, entryId) {
+    clearForm();
+    const overlay = document.getElementById('modal-overlay');
+    const deleteBtn = document.getElementById('btn-delete-modal');
+
+    if (entryId) {
+      // 編集モード
+      const entry = deliveries.find(e => e.id === entryId);
+      if (!entry) return;
+      document.getElementById('modal-title').textContent = '入出荷エントリ 編集';
+      document.getElementById('edit-id').value = entryId;
+      document.getElementById('f-date').value           = entry.date ? entry.date.slice(0,10) : '';
+      document.getElementById('f-type').value           = entry.type || '';
+      document.getElementById('f-time-slot').value      = entry.time_slot || '';
+      document.getElementById('f-status').value         = entry.status || '';
+      document.getElementById('f-project-number').value = entry.project_number || '';
+      document.getElementById('f-machine-unit').value   = entry.machine_unit || '';
+      document.getElementById('f-product-name').value   = entry.product_name || '';
+      document.getElementById('f-from-to').value        = entry.from_to || '';
+      document.getElementById('f-transport').value      = entry.transport || '';
+      document.getElementById('f-size').value           = entry.size || '';
+      document.getElementById('f-weight').value         = entry.weight || '';
+      document.getElementById('f-quantity').value       = entry.quantity || '';
+      document.getElementById('f-unit').value           = entry.unit || '';
+      document.getElementById('f-sales-rep').value      = entry.sales_rep || '';
+      document.getElementById('f-mfg-rep').value        = entry.mfg_rep || '';
+      document.getElementById('f-assembly-rep').value   = entry.assembly_rep || '';
+      document.getElementById('f-note').value           = entry.note || '';
+      deleteBtn.style.display = 'inline-block';
+    } else {
+      // 追加モード
+      document.getElementById('modal-title').textContent = '入出荷エントリ 追加';
+      document.getElementById('edit-id').value = '';
+      if (dateStr) document.getElementById('f-date').value = dateStr;
+      deleteBtn.style.display = 'none';
+    }
+
+    overlay.classList.add('show');
+    document.getElementById('f-date').focus();
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('show');
+  }
+
+  function clearForm() {
+    ['f-date','f-type','f-time-slot','f-status','f-project-number',
+     'f-machine-unit','f-product-name','f-from-to','f-transport',
+     'f-size','f-weight','f-quantity','f-unit','f-sales-rep',
+     'f-mfg-rep','f-assembly-rep','f-note'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    document.getElementById('autofill-hint').style.display = 'none';
+  }
+
+  // ─── 保存 ──────────────────────────────────────────────
+  async function saveEntry() {
+    const date = document.getElementById('f-date').value;
+    const type = document.getElementById('f-type').value;
+    if (!date) { showToast('日付を入力してください', 'error'); return; }
+    if (!type) { showToast('入荷/出荷を選択してください', 'error'); return; }
+
+    const payload = {
+      date:           date,
+      type:           type,
+      time_slot:      document.getElementById('f-time-slot').value || null,
+      status:         document.getElementById('f-status').value || null,
+      project_number: document.getElementById('f-project-number').value || null,
+      machine_unit:   document.getElementById('f-machine-unit').value || null,
+      product_name:   document.getElementById('f-product-name').value || null,
+      from_to:        document.getElementById('f-from-to').value || null,
+      transport:      document.getElementById('f-transport').value || null,
+      size:           document.getElementById('f-size').value || null,
+      weight:         document.getElementById('f-weight').value || null,
+      quantity:       document.getElementById('f-quantity').value || null,
+      unit:           document.getElementById('f-unit').value || null,
+      sales_rep:      document.getElementById('f-sales-rep').value || null,
+      mfg_rep:        document.getElementById('f-mfg-rep').value || null,
+      assembly_rep:   document.getElementById('f-assembly-rep').value || null,
+      note:           document.getElementById('f-note').value || null,
+      updated_at:     new Date().toISOString(),
+    };
+
+    const editId = document.getElementById('edit-id').value;
+    let error;
+
+    if (editId) {
+      ({ error } = await sb.from('deliveries').update(payload).eq('id', editId));
+    } else {
+      ({ error } = await sb.from('deliveries').insert(payload));
+    }
+
+    if (error) {
+      showToast('保存に失敗しました: ' + error.message, 'error');
+      return;
+    }
+
+    showToast('保存しました', 'success');
+    closeModal();
+    await loadAndRender();
+  }
+
+  // ─── 削除 ──────────────────────────────────────────────
+  async function deleteEntry() {
+    const editId = document.getElementById('edit-id').value;
+    if (!editId) return;
+    if (!confirm('このエントリを削除しますか？')) return;
+
+    const { error } = await sb.from('deliveries').delete().eq('id', editId);
+    if (error) { showToast('削除に失敗しました', 'error'); return; }
+
+    showToast('削除しました');
+    closeModal();
+    await loadAndRender();
+  }
+
+  // ─── 工番から自動補完 ──────────────────────────────────
+  function onProjectNumberInput() {
+    clearTimeout(autoFillTimer);
+    const pn = document.getElementById('f-project-number').value.trim();
+    if (!pn) return;
+    autoFillTimer = setTimeout(() => autoFillFromTasks(pn), 600);
+  }
+
+  async function autoFillFromTasks(projectNumber) {
+    const { data } = await sb.from('tasks')
+      .select('machine, major_item, text, end_date')
+      .eq('project_number', projectNumber)
+      .limit(50);
+
+    if (!data || data.length === 0) return;
+
+    // 機械ユニット・製品名を補完（未入力の場合のみ）
+    const sample = data.find(t => t.machine) || data[0];
+    const machineInput  = document.getElementById('f-machine-unit');
+    const productInput  = document.getElementById('f-product-name');
+
+    if (!machineInput.value && sample.machine)     machineInput.value  = sample.machine;
+    if (!productInput.value  && sample.major_item) productInput.value  = sample.major_item;
+
+    // 出荷タイプの場合: 「工場出荷」タスクの end_date を日付として提案
+    const type = document.getElementById('f-type').value;
+    const dateInput = document.getElementById('f-date');
+    if (type === '出荷' && !dateInput.value) {
+      const shukkaTask = data.find(t => t.text === '工場出荷' && t.end_date);
+      if (shukkaTask) {
+        dateInput.value = shukkaTask.end_date.slice(0, 10);
+      }
+    }
+
+    document.getElementById('autofill-hint').style.display = 'inline';
+  }
+
+  // ─── トースト通知 ──────────────────────────────────────
+  function showToast(msg, type = '') {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast show ' + type;
+    setTimeout(() => { el.className = 'toast'; }, 2500);
+  }
+
+  // ─── オーバーレイクリックで閉じる ─────────────────────
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeModal();
+  });
+
+  // ─── 起動 ──────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>
