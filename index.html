@@ -71,9 +71,7 @@
     }
     .add-btn:hover { background: #388e3c; }
 
-    /* テーブルコンテナ */
     .table-container {
-      overflow-x: auto;
       padding: 12px;
     }
 
@@ -85,6 +83,11 @@
     }
 
     /* ヘッダー行 */
+    thead {
+      position: sticky;
+      top: 42px;
+      z-index: 10;
+    }
     thead th {
       background: #1976D2;
       color: white;
@@ -94,9 +97,6 @@
       border: 1px solid #1565C0;
       font-weight: 700;
       font-size: 11px;
-      position: sticky;
-      top: 42px;
-      z-index: 10;
     }
 
     /* データ行 */
