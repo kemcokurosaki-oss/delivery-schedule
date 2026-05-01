@@ -182,9 +182,66 @@
     }
     .op-btn.add-day:hover { background: #e8f5e9; }
 
-    /* 工程表タスク由来の行（参照のみ） */
+    /* 工程表タスク由来の行（セル内インライン補完） */
     tr.row-from-task td:not(.td-date):not(.td-dow) {
       background: #fafafa;
+      white-space: normal;
+      vertical-align: middle;
+    }
+    tr.row-from-task .task-inline-input.ghost {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      font: inherit;
+      font-size: 11px;
+      padding: 2px 2px;
+      border: none;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    tr.row-from-task .task-inline-input.ghost:focus {
+      outline: none;
+      background: rgba(255, 255, 255, 0.55);
+      box-shadow: inset 0 -1px 0 #1976D2;
+    }
+    tr.row-from-task .task-pick-wrap {
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 48px;
+      max-width: 100%;
+    }
+    tr.row-from-task .task-pick-display {
+      border: none;
+      background: transparent;
+      padding: 2px 4px;
+      margin: 0;
+      font: inherit;
+      font-size: 11px;
+      cursor: pointer;
+      width: 100%;
+      text-align: center;
+      color: inherit;
+    }
+    tr.row-from-task .task-pick-display:hover {
+      filter: brightness(0.92);
+    }
+    tr.row-from-task .task-pick-placeholder {
+      color: #aaa;
+      font-weight: 400;
+    }
+    tr.row-from-task .task-pick-control {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      font: inherit;
+      font-size: 11px;
+      padding: 2px 4px;
+      border: 1px solid #90caf9;
+      border-radius: 3px;
+      background: #fff;
     }
     tr.row-from-task .task-source-tag {
       display: inline-block;
@@ -509,13 +566,229 @@
   let currentYear  = new Date().getFullYear();
   let currentMonth = new Date().getMonth() + 1; // 1-indexed
   let deliveries   = [];
-  /** 当月の tasks（text=工場出荷）を一覧用に正規化した行 */
+  /** 当月の tasks（text=工場出荷）ベース行（マージ前） */
+  let taskShipmentBases = [];
+  /** 当月の tasks（text=工場出荷）を一覧用に正規化した行（補完マージ済み） */
   let taskShipments = [];
+  /** task_id → task_shipment_overlays の1行（当月に該当するタスクのみ） */
+  let taskOverlaysMap = new Map();
+  const overlaySaveTimers = new Map();
   let holidaySet   = new Set();
   let currentFilter = 'all';
   let autoFillTimer = null;
 
   const DOW_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
+
+  const TASK_OVERLAY_KEYS = [
+    'time_slot', 'status', 'from_to', 'transport', 'size', 'weight',
+    'quantity', 'unit', 'sales_rep', 'mfg_rep', 'assembly_rep',
+  ];
+
+  /** 工程表ベース行に task_shipment_overlays を上書きマージ（空の overlay 値は無視） */
+  function mergeTaskOverlayRow(base, overlay) {
+    const out = { ...base };
+    if (!overlay) return out;
+    for (const k of TASK_OVERLAY_KEYS) {
+      const v = overlay[k];
+      if (v != null && String(v).trim() !== '') out[k] = v;
+    }
+    return out;
+  }
+
+  function escapeAttr(s) {
+    return String(s ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/\r?\n/g, ' ');
+  }
+
+  /** 時間帯: 通常はテキスト表示、クリックでプルダウン */
+  function taskTimeSlotPickCell(entry) {
+    const v = (entry.time_slot || '').trim();
+    const opts = ['午前', '午後', '昼前後'].map(o =>
+      `<option value="${o}"${v === o ? ' selected' : ''}>${o}</option>`
+    ).join('');
+    const disp = v
+      ? escapeAttr(v)
+      : '<span class="task-pick-placeholder">—</span>';
+    return `<div class="task-pick-wrap" data-pick-wrap="time_slot">
+      <button type="button" class="task-pick-display task-pick-time" aria-label="時間帯を編集">${disp}</button>
+      <select data-overlay="time_slot" class="task-pick-control" style="display:none"><option value=""></option>${opts}</select>
+    </div>`;
+  }
+
+  /** 予定状態: 通常は色付きバッジ、クリックでプルダウン */
+  function taskStatusPickCell(entry) {
+    const isK = entry.status === '確定';
+    const badge = isK
+      ? '<span class="status-badge kakutei">確定</span>'
+      : '<span class="status-badge yotei">予定</span>';
+    return `<div class="task-pick-wrap" data-pick-wrap="status">
+      <button type="button" class="task-pick-display task-pick-status" aria-label="予定状態を編集">${badge}</button>
+      <select data-overlay="status" class="task-pick-control" style="display:none">` +
+      `<option value="予定"${!isK ? ' selected' : ''}>予定</option>` +
+      `<option value="確定"${isK ? ' selected' : ''}>確定</option></select>
+    </div>`;
+  }
+
+  function syncTaskPickDisplay(wrap) {
+    if (!wrap) return;
+    const pick = wrap.getAttribute('data-pick-wrap');
+    const sel = wrap.querySelector('select.task-pick-control');
+    const btn = wrap.querySelector('.task-pick-display');
+    if (!sel || !btn) return;
+    if (pick === 'time_slot') {
+      const v = (sel.value || '').trim();
+      btn.innerHTML = v ? escapeAttr(v) : '<span class="task-pick-placeholder">—</span>';
+    } else if (pick === 'status') {
+      const isK = sel.value === '確定';
+      btn.innerHTML = isK
+        ? '<span class="status-badge kakutei">確定</span>'
+        : '<span class="status-badge yotei">予定</span>';
+    }
+  }
+
+  function taskInlineTextInput(field, entry, extraStyle = '', extraClass = '') {
+    const val = escapeAttr(entry[field] || '');
+    const c = 'task-inline-input ghost' + (extraClass ? ' ' + extraClass : '');
+    return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}">`;
+  }
+
+  function gatherOverlayPayloadFromRow(tr) {
+    const get = key => {
+      const el = tr.querySelector(`[data-overlay="${key}"]`);
+      if (!el) return null;
+      const raw = el.value != null ? String(el.value).trim() : '';
+      return raw === '' ? null : raw;
+    };
+    return {
+      time_slot: get('time_slot'),
+      status: get('status'),
+      from_to: get('from_to'),
+      transport: get('transport'),
+      size: get('size'),
+      weight: get('weight'),
+      quantity: get('quantity'),
+      unit: get('unit'),
+      sales_rep: get('sales_rep'),
+      mfg_rep: get('mfg_rep'),
+      assembly_rep: get('assembly_rep'),
+    };
+  }
+
+  /** 補完が実質空なら DB 行を削除する（既定の「予定」のみ等） */
+  function shouldDeleteOverlayRow(data) {
+    const textKeys = ['time_slot', 'from_to', 'transport', 'size', 'weight', 'quantity', 'unit', 'sales_rep', 'mfg_rep', 'assembly_rep'];
+    if (textKeys.some(k => data[k])) return false;
+    if (data.status === '確定') return false;
+    return true;
+  }
+
+  function schedulePersistTaskOverlay(tr) {
+    const id = tr.dataset.taskId;
+    if (!id) return;
+    const prev = overlaySaveTimers.get(id);
+    if (prev) clearTimeout(prev);
+    overlaySaveTimers.set(id, setTimeout(() => {
+      overlaySaveTimers.delete(id);
+      persistTaskRowOverlay(tr);
+    }, 400));
+  }
+
+  async function persistTaskRowOverlay(tr) {
+    const rawId = tr.dataset.taskId;
+    const taskId = Number(rawId);
+    if (!rawId || Number.isNaN(taskId)) return;
+
+    const gathered = gatherOverlayPayloadFromRow(tr);
+    if (shouldDeleteOverlayRow(gathered)) {
+      if (!taskOverlaysMap.has(String(taskId))) return;
+      const { error } = await sb.from('task_shipment_overlays').delete().eq('task_id', taskId);
+      if (error) {
+        showToast('補完の保存に失敗しました: ' + error.message, 'error');
+        await loadAndRender();
+        return;
+      }
+      taskOverlaysMap.delete(String(taskId));
+    } else {
+      const existing = taskOverlaysMap.get(String(taskId));
+      const payload = {
+        task_id: taskId,
+        time_slot: gathered.time_slot,
+        status: gathered.status === '確定' ? '確定' : null,
+        from_to: gathered.from_to,
+        transport: gathered.transport,
+        size: gathered.size,
+        weight: gathered.weight,
+        quantity: gathered.quantity,
+        unit: gathered.unit,
+        sales_rep: gathered.sales_rep,
+        mfg_rep: gathered.mfg_rep,
+        assembly_rep: gathered.assembly_rep,
+        note: existing && existing.note != null && String(existing.note).trim() !== '' ? existing.note : null,
+      };
+      const { data: savedRows, error } = await sb
+        .from('task_shipment_overlays')
+        .upsert(payload, { onConflict: 'task_id' })
+        .select();
+      if (error) {
+        showToast('補完の保存に失敗しました: ' + error.message, 'error');
+        await loadAndRender();
+        return;
+      }
+      const saved = savedRows && savedRows[0];
+      taskOverlaysMap.set(String(taskId), saved || { ...payload });
+    }
+
+    const base = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
+    const si = taskShipments.findIndex(e => e._fromTask && String(e._taskId) === String(taskId));
+    if (base && si >= 0) {
+      taskShipments[si] = mergeTaskOverlayRow(base, taskOverlaysMap.get(String(taskId)));
+    }
+  }
+
+  function bindTableOverlayListeners() {
+    const tbody = document.getElementById('table-body');
+    if (!tbody || tbody.dataset.overlayBound) return;
+    tbody.dataset.overlayBound = '1';
+    tbody.addEventListener('click', e => {
+      const btn = e.target.closest('.task-pick-display');
+      if (!btn) return;
+      const wrap = btn.closest('[data-pick-wrap]');
+      const tr = wrap && wrap.closest('tr.row-from-task');
+      if (!wrap || !tr) return;
+      const sel = wrap.querySelector('select.task-pick-control');
+      if (!sel) return;
+      btn.style.display = 'none';
+      sel.style.display = '';
+      sel.focus();
+    });
+    tbody.addEventListener('change', e => {
+      const t = e.target;
+      if (!t || !t.dataset || !t.dataset.overlay) return;
+      const tr = t.closest('tr.row-from-task');
+      if (tr) schedulePersistTaskOverlay(tr);
+    });
+    tbody.addEventListener('blur', e => {
+      const t = e.target;
+      if (!t || !t.dataset || !t.dataset.overlay) return;
+      const tr = t.closest('tr.row-from-task');
+      if (!tr) return;
+      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
+        const wrap = t.closest('[data-pick-wrap]');
+        syncTaskPickDisplay(wrap);
+        t.style.display = 'none';
+        const btn = wrap && wrap.querySelector('.task-pick-display');
+        if (btn) btn.style.display = '';
+        schedulePersistTaskOverlay(tr);
+        return;
+      }
+      if (t.tagName === 'INPUT' && t.classList.contains('ghost')) {
+        schedulePersistTaskOverlay(tr);
+      }
+    }, true);
+  }
 
   /** holidays.date が "YYYY/M/D" でもカレンダー日付（YYYY-MM-DD）と一致するよう正規化（工程表 gantt-resource.js と同じ） */
   function normalizeHolidayDate(raw) {
@@ -572,9 +845,11 @@
 
     if (taskErr) {
       showToast('工程表（工場出荷）の読み込みに失敗しました', 'error');
+      taskShipmentBases = [];
       taskShipments = [];
+      taskOverlaysMap = new Map();
     } else {
-      taskShipments = (taskData || [])
+      const bases = (taskData || [])
         .map(t => {
           const raw = t.end_date;
           if (raw == null) return null;
@@ -603,9 +878,29 @@
           };
         })
         .filter(Boolean);
+
+      taskShipmentBases = bases;
+      taskOverlaysMap = new Map();
+      const taskIds = [...new Set(bases.map(b => b._taskId).filter(id => id != null))];
+      if (taskIds.length) {
+        const { data: ovRows, error: ovErr } = await sb
+          .from('task_shipment_overlays')
+          .select('*')
+          .in('task_id', taskIds);
+        if (ovErr) {
+          showToast('補完データの読み込みに失敗しました（一覧は表示されます）', 'error');
+        } else if (ovRows) {
+          ovRows.forEach(r => taskOverlaysMap.set(String(r.task_id), r));
+        }
+      }
+
+      taskShipments = bases.map(b =>
+        mergeTaskOverlayRow(b, taskOverlaysMap.get(String(b._taskId)))
+      );
     }
 
     renderCalendar();
+    bindTableOverlayListeners();
   }
 
   /** 同日・同工番の手動出荷があれば工程表タスク行は二重表示しない */
@@ -667,19 +962,40 @@
           const tr = document.createElement('tr');
           const fromTask = !!entry._fromTask;
           tr.className = rowClass + (fromTask ? ' row-from-task' : '');
+          if (fromTask) tr.dataset.taskId = String(entry._taskId);
           const dateCell = idx === 0
             ? `<td class="td-date" rowspan="${dayEntries.length}">${currentMonth}/${d}</td>
                <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
             : '';
           const noteCell = fromTask
-            ? `<span class="task-source-tag">[工程表]</span>工場出荷（tasks）`
+            ? `<span class="task-source-tag">[工程表]</span>工場出荷`
             : (entry.note || '');
           const opCell = fromTask
-            ? `<span style="color:#888;font-size:11px;">参照のみ</span>
-               ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : ''}`
+            ? (idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
             : `<button class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
                ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}`;
-          tr.innerHTML = `
+          if (fromTask) {
+            tr.innerHTML = `
+            ${dateCell}
+            <td style="text-align:center;">${typeBadge(entry.type)}</td>
+            <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
+            <td style="text-align:center;">${taskStatusPickCell(entry)}</td>
+            <td style="text-align:center;">${entry.project_number || ''}</td>
+            <td>${entry.machine_unit || ''}</td>
+            <td>${entry.product_name || ''}</td>
+            <td>${taskInlineTextInput('from_to', entry)}</td>
+            <td>${taskInlineTextInput('transport', entry)}</td>
+            <td>${taskInlineTextInput('size', entry)}</td>
+            <td style="text-align:right;">${taskInlineTextInput('weight', entry, 'text-align:right;')}</td>
+            <td style="text-align:right;">${taskInlineTextInput('quantity', entry, 'text-align:right;')}</td>
+            <td style="text-align:center;">${taskInlineTextInput('unit', entry, 'text-align:center;')}</td>
+            <td>${taskInlineTextInput('sales_rep', entry)}</td>
+            <td>${taskInlineTextInput('mfg_rep', entry)}</td>
+            <td>${taskInlineTextInput('assembly_rep', entry)}</td>
+            <td>${noteCell}</td>
+            <td style="text-align:center;">${opCell}</td>`;
+          } else {
+            tr.innerHTML = `
             ${dateCell}
             <td style="text-align:center;">${typeBadge(entry.type)}</td>
             <td style="text-align:center;">${entry.time_slot || ''}</td>
@@ -698,6 +1014,7 @@
             <td>${entry.assembly_rep || ''}</td>
             <td>${noteCell}</td>
             <td style="text-align:center;">${opCell}</td>`;
+          }
           tbody.appendChild(tr);
         });
       }
@@ -794,6 +1111,7 @@
      'f-mfg-rep','f-assembly-rep','f-note'].forEach(id => {
       document.getElementById(id).value = '';
     });
+    document.getElementById('edit-id').value = '';
     document.getElementById('autofill-hint').style.display = 'none';
   }
 
