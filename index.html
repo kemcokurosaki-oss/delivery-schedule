@@ -180,6 +180,19 @@
     }
     .op-btn.add-day:hover { background: #e8f5e9; }
 
+    /* 工程表タスク由来の行（参照のみ） */
+    tr.row-from-task td:not(.td-date):not(.td-dow) {
+      background: #fafafa;
+    }
+    tr.row-from-task .task-source-tag {
+      display: inline-block;
+      font-size: 10px;
+      color: #5c6bc0;
+      font-weight: 700;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+
     /* ローディング */
     .loading {
       text-align: center;
@@ -494,6 +507,8 @@
   let currentYear  = new Date().getFullYear();
   let currentMonth = new Date().getMonth() + 1; // 1-indexed
   let deliveries   = [];
+  /** 当月の tasks（text=工場出荷）を一覧用に正規化した行 */
+  let taskShipments = [];
   let holidaySet   = new Set();
   let currentFilter = 'all';
   let autoFillTimer = null;
@@ -546,7 +561,58 @@
 
     if (error) { showToast('データの読み込みに失敗しました', 'error'); return; }
     deliveries = data || [];
+
+    const { data: taskData, error: taskErr } = await sb.from('tasks')
+      .select('id, project_number, machine, major_item, text, end_date')
+      .eq('text', '工場出荷')
+      .gte('end_date', startDate)
+      .lte('end_date', endDate);
+
+    if (taskErr) {
+      showToast('工程表（工場出荷）の読み込みに失敗しました', 'error');
+      taskShipments = [];
+    } else {
+      taskShipments = (taskData || [])
+        .map(t => {
+          const raw = t.end_date;
+          if (raw == null) return null;
+          const ymd = String(raw).slice(0, 10);
+          if (ymd < startDate || ymd > endDate) return null;
+          return {
+            _fromTask: true,
+            _taskId: t.id,
+            date: ymd,
+            type: '出荷',
+            time_slot: null,
+            status: '予定',
+            project_number: t.project_number,
+            machine_unit: t.machine,
+            product_name: t.major_item,
+            from_to: null,
+            transport: null,
+            size: null,
+            weight: null,
+            quantity: null,
+            unit: null,
+            sales_rep: null,
+            mfg_rep: null,
+            assembly_rep: null,
+            note: null,
+          };
+        })
+        .filter(Boolean);
+    }
+
     renderCalendar();
+  }
+
+  /** 同日・同工番の手動出荷があれば工程表タスク行は二重表示しない */
+  function taskShipmentVisibleForDay(taskRow, dayDeliveriesAllTypes) {
+    const pn = (taskRow.project_number || '').trim();
+    if (!pn) return true;
+    return !dayDeliveriesAllTypes.some(
+      e => e.type === '出荷' && (e.project_number || '').trim() === pn
+    );
   }
 
   // ─── カレンダー描画 ────────────────────────────────────
@@ -570,11 +636,17 @@
         : dow === 6 ? 'saturday'
         : 'weekday';
 
-      const dayEntries = deliveries.filter(e => {
+      const dayDeliveries = deliveries.filter(e => {
         if (e.date.slice(0,10) !== dateStr) return false;
         if (currentFilter === 'all') return true;
         return e.type === currentFilter;
       });
+
+      const deliveriesThisDay = deliveries.filter(e => e.date.slice(0, 10) === dateStr);
+      const dayTasks = (currentFilter === '入荷' ? [] : taskShipments)
+        .filter(t => t.date === dateStr && taskShipmentVisibleForDay(t, deliveriesThisDay));
+
+      const dayEntries = [...dayDeliveries, ...dayTasks];
 
       if (dayEntries.length === 0) {
         // 入出荷なし → 1行（日付・曜日・＋ボタンのみ）
@@ -591,11 +663,20 @@
       } else {
         dayEntries.forEach((entry, idx) => {
           const tr = document.createElement('tr');
-          tr.className = rowClass;
+          const fromTask = !!entry._fromTask;
+          tr.className = rowClass + (fromTask ? ' row-from-task' : '');
           const dateCell = idx === 0
             ? `<td class="td-date" rowspan="${dayEntries.length}">${currentMonth}/${d}</td>
                <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
             : '';
+          const noteCell = fromTask
+            ? `<span class="task-source-tag">[工程表]</span>工場出荷（tasks）`
+            : (entry.note || '');
+          const opCell = fromTask
+            ? `<span style="color:#888;font-size:11px;">参照のみ</span>
+               ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : ''}`
+            : `<button class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
+               ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}`;
           tr.innerHTML = `
             ${dateCell}
             <td style="text-align:center;">${typeBadge(entry.type)}</td>
@@ -613,11 +694,8 @@
             <td>${entry.sales_rep || ''}</td>
             <td>${entry.mfg_rep || ''}</td>
             <td>${entry.assembly_rep || ''}</td>
-            <td>${entry.note || ''}</td>
-            <td style="text-align:center;">
-              <button class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
-              ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}
-            </td>`;
+            <td>${noteCell}</td>
+            <td style="text-align:center;">${opCell}</td>`;
           tbody.appendChild(tr);
         });
       }
