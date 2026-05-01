@@ -500,10 +500,32 @@
 
   const DOW_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
 
+  /** holidays.date が "YYYY/M/D" でもカレンダー日付（YYYY-MM-DD）と一致するよう正規化（工程表 gantt-resource.js と同じ） */
+  function normalizeHolidayDate(raw) {
+    if (raw == null) return null;
+    const s = String(raw).trim();
+    const parts = s.split('/');
+    if (parts.length === 3 && parts[0].length === 4) {
+      const y = parts[0];
+      const m = parts[1].padStart(2, '0');
+      const d = parts[2].padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+    const iso = s.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (iso) return iso[1];
+    return s.length >= 10 ? s.slice(0, 10) : s;
+  }
+
   // ─── 初期化 ───────────────────────────────────────────
   async function init() {
-    const { data: hols } = await sb.from('holidays').select('date');
-    if (hols) hols.forEach(r => holidaySet.add(r.date.slice(0, 10)));
+    const { data: hols, error: holErr } = await sb.from('holidays').select('date');
+    if (holErr) showToast('祝日・休日データの読み込みに失敗しました', 'error');
+    if (hols) {
+      hols.forEach(r => {
+        const ymd = normalizeHolidayDate(r.date);
+        if (ymd) holidaySet.add(ymd);
+      });
+    }
     await loadAndRender();
   }
 
@@ -541,7 +563,12 @@
       const dow      = dateObj.getDay(); // 0=日, 6=土
       const dateStr  = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const isHol    = holidaySet.has(dateStr);
-      const rowClass = dow === 0 || isHol ? 'sunday' : dow === 6 ? 'saturday' : 'weekday';
+      // 日曜・社内休日（土日以外含む）は日曜行と同じ背景。休日は .holiday も付与。
+      const rowClass =
+        dow === 0 ? 'sunday'
+        : isHol ? 'sunday holiday'
+        : dow === 6 ? 'saturday'
+        : 'weekday';
 
       const dayEntries = deliveries.filter(e => {
         if (e.date.slice(0,10) !== dateStr) return false;
