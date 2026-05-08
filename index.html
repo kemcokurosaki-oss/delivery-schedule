@@ -875,98 +875,109 @@
 
   // ─── カレンダー描画 ────────────────────────────────────
   function renderCalendar() {
-    const lastDay = new Date(currentYear, currentMonth, 0).getDate();
-    document.getElementById('current-month').textContent =
-      `${currentYear}年 ${currentMonth}月`;
+    const { startYear, startMonth, endYear, endMonth } = getViewRange();
+    document.getElementById('view-range').textContent =
+      `${startYear}年${startMonth}月 〜 ${endYear}年${endMonth}月`;
 
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
 
-    for (let d = 1; d <= lastDay; d++) {
-      const dateObj  = new Date(currentYear, currentMonth - 1, d);
-      const dow      = dateObj.getDay(); // 0=日, 6=土
-      const dateStr  = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-      const isHol    = holidaySet.has(dateStr);
-      // 日曜・社内休日（土日以外含む）は日曜行と同じ背景。休日は .holiday も付与。
-      const rowClass =
-        dow === 0 ? 'sunday'
-        : isHol ? 'sunday holiday'
-        : dow === 6 ? 'saturday'
-        : 'weekday';
+    let y = startYear, m = startMonth;
+    while (y < endYear || (y === endYear && m <= endMonth)) {
+      // 月ヘッダー行
+      const mhTr = document.createElement('tr');
+      mhTr.innerHTML = `<td colspan="13" class="month-header">${y}年 ${m}月</td>`;
+      tbody.appendChild(mhTr);
 
-      const dayDeliveries = deliveries.filter(e => {
-        if (e.date.slice(0,10) !== dateStr) return false;
-        if (currentFilter === 'all') return true;
-        return e.type === currentFilter;
-      });
+      const lastDay = new Date(y, m, 0).getDate();
+      for (let d = 1; d <= lastDay; d++) {
+        const dateObj  = new Date(y, m - 1, d);
+        const dow      = dateObj.getDay(); // 0=日, 6=土
+        const dateStr  = `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const isHol    = holidaySet.has(dateStr);
+        const rowClass =
+          dow === 0 ? 'sunday'
+          : isHol ? 'sunday holiday'
+          : dow === 6 ? 'saturday'
+          : 'weekday';
 
-      const deliveriesThisDay = deliveries.filter(e => e.date.slice(0, 10) === dateStr);
-      const dayTasks = (currentFilter === '入荷' ? [] : taskShipments)
-        .filter(t => t.date === dateStr && taskShipmentVisibleForDay(t, deliveriesThisDay));
-
-      const dayEntries = [...dayDeliveries, ...dayTasks];
-
-      if (dayEntries.length === 0) {
-        // 入出荷なし → 1行（日付・曜日・＋ボタンのみ）
-        const tr = document.createElement('tr');
-        tr.className = rowClass + ' empty-day';
-        tr.innerHTML = `
-          <td class="td-date">${currentMonth}/${d}</td>
-          <td class="td-dow" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>
-          <td colspan="10"></td>
-          <td style="text-align:center;">
-            <button class="op-btn add-day" onclick="openModal('${dateStr}')" title="この日にエントリを追加">＋</button>
-          </td>`;
-        tbody.appendChild(tr);
-      } else {
-        dayEntries.forEach((entry, idx) => {
-          const tr = document.createElement('tr');
-          const fromTask = !!entry._fromTask;
-          tr.className = rowClass + (fromTask ? ' row-from-task' : '');
-          if (fromTask) tr.dataset.taskId = String(entry._taskId);
-          const dateCell = idx === 0
-            ? `<td class="td-date" rowspan="${dayEntries.length}">${currentMonth}/${d}</td>
-               <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
-            : '';
-          const noteCell = fromTask
-            ? `<span class="task-source-tag">[工程表]</span>工場出荷`
-            : (entry.note || '');
-          const opCell = fromTask
-            ? (idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
-            : `<button class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
-               ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}`;
-          if (fromTask) {
-            tr.innerHTML = `
-            ${dateCell}
-            <td style="text-align:center;">${typeBadge(entry.type)}</td>
-            <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
-            <td style="text-align:center;">${taskStatusPickCell(entry)}</td>
-            <td style="text-align:center;">${entry.project_number || ''}</td>
-            <td>${entry.machine_unit || ''}</td>
-            <td>${entry.product_name || ''}</td>
-            <td style="text-align:right;">${taskInlineTextInput('quantity', entry, 'text-align:right;')}</td>
-            <td>${taskInlineTextInput('sales_rep', entry)}</td>
-            <td>${taskInlineTextInput('mfg_rep', entry)}</td>
-            <td>${noteCell}</td>
-            <td style="text-align:center;">${opCell}</td>`;
-          } else {
-            tr.innerHTML = `
-            ${dateCell}
-            <td style="text-align:center;">${typeBadge(entry.type)}</td>
-            <td style="text-align:center;">${entry.time_slot || ''}</td>
-            <td style="text-align:center;">${statusBadge(entry.status)}</td>
-            <td style="text-align:center;">${entry.project_number || ''}</td>
-            <td>${entry.machine_unit || ''}</td>
-            <td>${entry.product_name || ''}</td>
-            <td style="text-align:right;">${entry.quantity || ''}</td>
-            <td>${entry.sales_rep || ''}</td>
-            <td>${entry.mfg_rep || ''}</td>
-            <td>${noteCell}</td>
-            <td style="text-align:center;">${opCell}</td>`;
-          }
-          tbody.appendChild(tr);
+        const dayDeliveries = deliveries.filter(e => {
+          if (e.date.slice(0,10) !== dateStr) return false;
+          if (currentFilter === 'all') return true;
+          return e.type === currentFilter;
         });
+
+        const deliveriesThisDay = deliveries.filter(e => e.date.slice(0, 10) === dateStr);
+        const dayTasks = (currentFilter === '入荷' ? [] : taskShipments)
+          .filter(t => t.date === dateStr && taskShipmentVisibleForDay(t, deliveriesThisDay));
+
+        const dayEntries = [...dayDeliveries, ...dayTasks];
+
+        if (dayEntries.length === 0) {
+          // 入出荷なし → 1行（日付・曜日・＋ボタンのみ）
+          const tr = document.createElement('tr');
+          tr.className = rowClass + ' empty-day';
+          tr.innerHTML = `
+            <td class="td-date">${m}/${d}</td>
+            <td class="td-dow" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>
+            <td colspan="10"></td>
+            <td style="text-align:center;">
+              <button class="op-btn add-day" onclick="openModal('${dateStr}')" title="この日にエントリを追加">＋</button>
+            </td>`;
+          tbody.appendChild(tr);
+        } else {
+          dayEntries.forEach((entry, idx) => {
+            const tr = document.createElement('tr');
+            const fromTask = !!entry._fromTask;
+            tr.className = rowClass + (fromTask ? ' row-from-task' : '');
+            if (fromTask) tr.dataset.taskId = String(entry._taskId);
+            const dateCell = idx === 0
+              ? `<td class="td-date" rowspan="${dayEntries.length}">${m}/${d}</td>
+                 <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
+              : '';
+            const noteCell = fromTask
+              ? `<span class="task-source-tag">[工程表]</span>工場出荷`
+              : (entry.note || '');
+            const opCell = fromTask
+              ? (idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
+              : `<button class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
+                 ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}`;
+            if (fromTask) {
+              tr.innerHTML = `
+              ${dateCell}
+              <td style="text-align:center;">${typeBadge(entry.type)}</td>
+              <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
+              <td style="text-align:center;">${taskStatusPickCell(entry)}</td>
+              <td style="text-align:center;">${entry.project_number || ''}</td>
+              <td>${entry.machine_unit || ''}</td>
+              <td>${entry.product_name || ''}</td>
+              <td style="text-align:right;">${taskInlineTextInput('quantity', entry, 'text-align:right;')}</td>
+              <td>${taskInlineTextInput('sales_rep', entry)}</td>
+              <td>${taskInlineTextInput('mfg_rep', entry)}</td>
+              <td>${noteCell}</td>
+              <td style="text-align:center;">${opCell}</td>`;
+            } else {
+              tr.innerHTML = `
+              ${dateCell}
+              <td style="text-align:center;">${typeBadge(entry.type)}</td>
+              <td style="text-align:center;">${entry.time_slot || ''}</td>
+              <td style="text-align:center;">${statusBadge(entry.status)}</td>
+              <td style="text-align:center;">${entry.project_number || ''}</td>
+              <td>${entry.machine_unit || ''}</td>
+              <td>${entry.product_name || ''}</td>
+              <td style="text-align:right;">${entry.quantity || ''}</td>
+              <td>${entry.sales_rep || ''}</td>
+              <td>${entry.mfg_rep || ''}</td>
+              <td>${noteCell}</td>
+              <td style="text-align:center;">${opCell}</td>`;
+            }
+            tbody.appendChild(tr);
+          });
+        }
       }
+
+      m++;
+      if (m > 12) { m = 1; y++; }
     }
 
     document.getElementById('loading').style.display = 'none';
