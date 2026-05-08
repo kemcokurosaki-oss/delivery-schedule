@@ -645,6 +645,17 @@
     return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}">`;
   }
 
+  /** 営業担当セル: salesPersonMap からの自動入力は読み取り専用、手動overlay入力は編集可 */
+  function taskSalesRepCell(entry) {
+    const overlay = taskOverlaysMap.get(String(entry._taskId));
+    const overlayRep = overlay && overlay.sales_rep != null && String(overlay.sales_rep).trim() !== ''
+      ? overlay.sales_rep : null;
+    if (!overlayRep && entry.sales_rep) {
+      return `<span class="sales-rep-auto">${escapeAttr(entry.sales_rep)}</span>`;
+    }
+    return taskInlineTextInput('sales_rep', entry);
+  }
+
   function gatherOverlayPayloadFromRow(tr) {
     const get = key => {
       const el = tr.querySelector(`[data-overlay="${key}"]`);
