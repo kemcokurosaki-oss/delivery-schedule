@@ -636,7 +636,7 @@
 
   /** 補完が実質空なら DB 行を削除する（既定の「予定」のみ等） */
   function shouldDeleteOverlayRow(data) {
-    const textKeys = ['time_slot', 'quantity', 'sales_rep', 'mfg_rep', 'assembly_rep'];
+    const textKeys = ['time_slot', 'quantity', 'sales_rep', 'mfg_rep'];
     if (textKeys.some(k => data[k])) return false;
     if (data.status === '確定') return false;
     return true;
