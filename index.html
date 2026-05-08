@@ -1165,13 +1165,15 @@
 
     if (!data || data.length === 0) return;
 
-    // 機械ユニット・製品名を補完（未入力の場合のみ）
+    // 機械ユニット・製品名・営業担当を補完（未入力の場合のみ）
     const sample = data.find(t => t.machine) || data[0];
     const machineInput  = document.getElementById('f-machine-unit');
     const productInput  = document.getElementById('f-product-name');
+    const salesRepInput = document.getElementById('f-sales-rep');
 
-    if (!machineInput.value && sample.machine)     machineInput.value  = sample.machine;
-    if (!productInput.value  && sample.major_item) productInput.value  = sample.major_item;
+    if (!machineInput.value && sample.machine)                         machineInput.value  = sample.machine;
+    if (!productInput.value  && sample.major_item)                     productInput.value  = sample.major_item;
+    if (!salesRepInput.value && salesPersonMap[projectNumber])         salesRepInput.value = salesPersonMap[projectNumber];
 
     // 出荷タイプの場合: 「工場出荷」タスクの end_date を日付として提案
     const type = document.getElementById('f-type').value;
