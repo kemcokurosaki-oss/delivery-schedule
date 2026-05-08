@@ -898,6 +898,9 @@
     const tbody = document.getElementById('table-body');
     tbody.innerHTML = '';
 
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+
     let y = startYear, m = startMonth;
     while (y < endYear || (y === endYear && m <= endMonth)) {
       // 月ヘッダー行
