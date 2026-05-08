@@ -862,7 +862,7 @@
             machine_unit: t.machine,
             product_name: t.major_item,
             quantity: null,
-            sales_rep: null,
+            sales_rep: salesPersonMap[t.project_number] || null,
             mfg_rep: null,
             note: null,
           };
