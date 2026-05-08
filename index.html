@@ -1002,14 +1002,6 @@
     return `<span class="status-badge ${cls}">${status}</span>`;
   }
 
-  // ─── ナビゲーション ────────────────────────────────────
-  function changeMonth(delta) {
-    currentMonth += delta;
-    if (currentMonth > 12) { currentMonth = 1;  currentYear++; }
-    if (currentMonth < 1)  { currentMonth = 12; currentYear--; }
-    loadAndRender();
-  }
-
   function setFilter(filter) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
