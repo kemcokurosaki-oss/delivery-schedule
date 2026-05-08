@@ -1156,6 +1156,17 @@
     document.getElementById('autofill-hint').style.display = 'inline';
   }
 
+  // ─── 今日の日付へスクロール ────────────────────────────
+  function scrollToToday() {
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+    const row = document.querySelector(`tr[data-date="${todayStr}"]`);
+    if (!row) return;
+    const stickyOffset = 54 + 12 + 8; // ヘッダー + table-gap + 余白
+    const top = window.pageYOffset + row.getBoundingClientRect().top - stickyOffset;
+    window.scrollTo({ top, behavior: 'instant' });
+  }
+
   // ─── トースト通知 ──────────────────────────────────────
   function showToast(msg, type = '') {
     const el = document.getElementById('toast');
