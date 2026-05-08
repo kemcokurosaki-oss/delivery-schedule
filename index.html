@@ -545,6 +545,17 @@
   let currentFilter = 'all';
   let autoFillTimer = null;
 
+  function getViewRange() {
+    const now = new Date();
+    const cy = now.getFullYear();
+    const cm = now.getMonth(); // 0-indexed
+    let sy = cy, sm = cm - 1;
+    if (sm < 0) { sm = 11; sy--; }
+    let ey = cy, em = cm + 6;
+    if (em > 11) { em -= 12; ey++; }
+    return { startYear: sy, startMonth: sm + 1, endYear: ey, endMonth: em + 1 };
+  }
+
   const DOW_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
 
   const TASK_OVERLAY_KEYS = [
