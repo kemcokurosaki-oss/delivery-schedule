@@ -1163,8 +1163,9 @@
     const todayStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
     const row = document.querySelector(`tr[data-date="${todayStr}"]`);
     if (!row) return;
-    const stickyOffset = 54 + 12 + 8; // ヘッダー + table-gap + 余白
-    const top = window.pageYOffset + row.getBoundingClientRect().top - stickyOffset;
+    // 今日の行をビューポートの上から約25%の位置に表示
+    const targetY = Math.round(window.innerHeight * 0.25);
+    const top = Math.max(0, window.pageYOffset + row.getBoundingClientRect().top - targetY);
     window.scrollTo({ top, behavior: 'instant' });
   }
 
