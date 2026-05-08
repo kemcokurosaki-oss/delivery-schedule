@@ -170,6 +170,19 @@
     /* 空行（入出荷なし） */
     tr.empty-day td { color: #bbb; }
 
+    /* 今日の行 */
+    tr.today td {
+      background-color: rgba(245, 158, 11, 0.12) !important;
+    }
+    tr.today .td-date {
+      border-left: 4px solid #F59E0B !important;
+      color: #92400E;
+      font-weight: 900;
+    }
+    tr.today .td-dow {
+      font-weight: 900;
+    }
+
     /* 操作ボタン */
     .op-btn {
       background: none;
