@@ -677,7 +677,6 @@
         quantity: gathered.quantity,
         sales_rep: gathered.sales_rep,
         mfg_rep: gathered.mfg_rep,
-        assembly_rep: gathered.assembly_rep,
         note: existing && existing.note != null && String(existing.note).trim() !== '' ? existing.note : null,
       };
       const { data: savedRows, error } = await sb
