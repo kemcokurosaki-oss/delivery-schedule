@@ -1182,18 +1182,6 @@
   });
 
   // ─── 起動 ──────────────────────────────────────────────
-  async function init() {
-    const { data: hols, error: holErr } = await sb.from('holidays').select('date');
-    if (holErr) showToast('祝日・休日データの読み込みに失敗しました', 'error');
-    if (hols) {
-      hols.forEach(r => {
-        const ymd = normalizeHolidayDate(r.date);
-        if (ymd) holidaySet.add(ymd);
-      });
-    }
-    await loadAndRender();
-    scrollToToday();
-  }
   init();
 </script>
 </body>
