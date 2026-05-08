@@ -934,6 +934,7 @@
             const fromTask = !!entry._fromTask;
             tr.className = rowClass + (fromTask ? ' row-from-task' : '');
             if (fromTask) tr.dataset.taskId = String(entry._taskId);
+            if (idx === 0) tr.dataset.date = dateStr;
             const dateCell = idx === 0
               ? `<td class="td-date" rowspan="${dayEntries.length}">${m}/${d}</td>
                  <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
