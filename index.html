@@ -919,6 +919,7 @@
           // 入出荷なし → 1行（日付・曜日・＋ボタンのみ）
           const tr = document.createElement('tr');
           tr.className = rowClass + ' empty-day';
+          tr.dataset.date = dateStr;
           tr.innerHTML = `
             <td class="td-date">${m}/${d}</td>
             <td class="td-dow" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>
