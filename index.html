@@ -789,9 +789,10 @@
     document.getElementById('loading').style.display = 'block';
     document.getElementById('delivery-table').style.display = 'none';
 
-    const startDate = `${currentYear}-${String(currentMonth).padStart(2,'0')}-01`;
-    const lastDay   = new Date(currentYear, currentMonth, 0).getDate();
-    const endDate   = `${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(lastDay).padStart(2,'0')}`;
+    const { startYear, startMonth, endYear, endMonth } = getViewRange();
+    const startDate = `${startYear}-${String(startMonth).padStart(2,'0')}-01`;
+    const lastDayEnd = new Date(endYear, endMonth, 0).getDate();
+    const endDate   = `${endYear}-${String(endMonth).padStart(2,'0')}-${String(lastDayEnd).padStart(2,'0')}`;
 
     const { data, error } = await sb.from('deliveries')
       .select('*')
