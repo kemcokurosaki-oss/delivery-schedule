@@ -80,7 +80,8 @@
     }
 
     table {
-      border-collapse: collapse;
+      border-collapse: separate;
+      border-spacing: 0;
       min-width: 1400px;
       background: white;
       box-shadow: 0 1px 4px rgba(0,0,0,0.1);
@@ -98,16 +99,23 @@
       padding: 6px 6px;
       text-align: center;
       white-space: nowrap;
-      border: 1px solid #37474F;
+      border-top: 1px solid #37474F;
+      border-right: 1px solid #37474F;
+      border-bottom: 1px solid #37474F;
+      border-left: none;
       font-weight: 700;
       font-size: 11px;
     }
+    thead th:first-child {
+      border-left: 1px solid #37474F;
+    }
 
     /* データ行 */
-    tbody tr { border-bottom: 1px solid #e0e0e0; }
+    tbody tr { }
     tbody td {
       padding: 4px 6px;
       border-right: 1px solid #e0e0e0;
+      border-bottom: 1px solid #e0e0e0;
       vertical-align: middle;
       white-space: nowrap;
     }
