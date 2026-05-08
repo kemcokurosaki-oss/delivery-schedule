@@ -949,7 +949,7 @@
           dayEntries.forEach((entry, idx) => {
             const tr = document.createElement('tr');
             const fromTask = !!entry._fromTask;
-            tr.className = rowClass + (fromTask ? ' row-from-task' : '');
+            tr.className = rowClass + (fromTask ? ' row-from-task' : '') + (dateStr === todayStr ? ' today' : '');
             if (fromTask) tr.dataset.taskId = String(entry._taskId);
             if (idx === 0) tr.dataset.date = dateStr;
             const dateCell = idx === 0
