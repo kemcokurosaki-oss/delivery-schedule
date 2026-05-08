@@ -533,8 +533,6 @@
 
   const sb = supabase.createClient(S_URL, S_KEY);
 
-  let currentYear  = new Date().getFullYear();
-  let currentMonth = new Date().getMonth() + 1; // 1-indexed
   let deliveries   = [];
   /** 当月の tasks（text=工場出荷）ベース行（マージ前） */
   let taskShipmentBases = [];
