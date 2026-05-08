@@ -807,12 +807,28 @@
     const lastDayEnd = new Date(endYear, endMonth, 0).getDate();
     const endDate   = `${endYear}-${String(endMonth).padStart(2,'0')}-${String(lastDayEnd).padStart(2,'0')}`;
 
-    const { data, error } = await sb.from('deliveries')
-      .select('*')
-      .gte('date', startDate)
-      .lte('date', endDate)
-      .order('date')
-      .order('created_at');
+    // sales_person_map を取得（deliveries と並列）
+    const [
+      { data, error },
+      { data: spMapRow },
+    ] = await Promise.all([
+      sb.from('deliveries')
+        .select('*')
+        .gte('date', startDate)
+        .lte('date', endDate)
+        .order('date')
+        .order('created_at'),
+      sb.from('app_settings')
+        .select('value')
+        .eq('key', 'sales_person_map')
+        .maybeSingle(),
+    ]);
+
+    if (spMapRow && spMapRow.value) {
+      try { salesPersonMap = JSON.parse(spMapRow.value); } catch { salesPersonMap = {}; }
+    } else {
+      salesPersonMap = {};
+    }
 
     if (error) { showToast('データの読み込みに失敗しました', 'error'); return; }
     deliveries = data || [];
