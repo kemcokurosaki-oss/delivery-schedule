@@ -554,6 +554,8 @@
   let holidaySet   = new Set();
   let currentFilter = 'all';
   let autoFillTimer = null;
+  /** app_settings.sales_person_map: project_number → 営業担当名 */
+  let salesPersonMap = {};
 
   function getViewRange() {
     const now = new Date();
