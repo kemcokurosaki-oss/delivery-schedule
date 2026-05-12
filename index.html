@@ -153,9 +153,54 @@
       border-radius: 3px;
       font-size: 11px;
       font-weight: 700;
+      white-space: nowrap;
     }
     .type-badge.nyuuka  { background: #e3f2fd; color: #1976D2; border: 1px solid #90caf9; }
     .type-badge.shukka  { background: #e8f5e9; color: #2E7D32; border: 1px solid #a5d6a7; }
+    /* 入荷/出荷：列幅に合わせつつ、内容塊をセル中央に */
+    thead th.th-col-type,
+    tbody td.td-type-cell {
+      width: 66px;
+      max-width: 66px;
+      min-width: 0;
+      box-sizing: border-box;
+      vertical-align: middle;
+      text-align: center;
+    }
+    thead th.th-col-type {
+      padding: 6px 10px;
+    }
+    tbody td.td-type-cell {
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
+    .type-cell-row {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      max-width: 100%;
+    }
+    /* 日数の有無でバッジ位置がずれないよう、右欄は常に同じ最小幅を確保 */
+    .type-cell-inner {
+      display: grid;
+      grid-template-columns: auto minmax(4.5ch, max-content);
+      column-gap: 6px;
+      align-items: center;
+      justify-items: start;
+    }
+    .type-cell-right {
+      font-size: 10px;
+      white-space: nowrap;
+      min-height: 1em;
+      justify-self: start;
+      text-align: left;
+    }
+    .type-cell-right .task-span-day-badge {
+      font-weight: 500;
+      color: #111;
+      line-height: 1.2;
+      letter-spacing: 0.02em;
+    }
 
     /* 予定状態バッジ */
     .status-badge {
@@ -200,11 +245,14 @@
     }
     .op-btn.add-day:hover { background: #e8f5e9; }
 
-    /* 工程表タスク由来の行（セル内インライン補完） */
-    tr.row-from-task td:not(.td-date):not(.td-dow) {
+    /* 工程表タスク由来の行（セル内インライン補完）— 入荷/出荷列は折り返さない */
+    tr.row-from-task td:not(.td-date):not(.td-dow):not(.td-type-cell) {
       background: #fafafa;
       white-space: normal;
       vertical-align: middle;
+    }
+    tr.row-from-task td.td-type-cell {
+      background: #fafafa;
     }
     tr.row-from-task .task-inline-input.ghost {
       width: 100%;
@@ -484,7 +532,7 @@
       <tr>
         <th style="width:70px;">日付</th>
         <th style="width:32px;">曜</th>
-        <th style="width:65px;">入荷/出荷</th>
+        <th class="th-col-type">入荷/出荷</th>
         <th style="width:65px;">時間帯</th>
         <th style="width:55px;">予定状態</th>
         <th style="width:58px;">工番</th>
@@ -599,12 +647,18 @@
       <span id="task-date-edit-pn" class="task-date-modal-kouban-value">—</span>
     </div>
     <p class="task-date-modal-help">
-      保存すると、<strong>工程表の該当「工場出荷」タスクの出荷日（終了日）もこの日付に連動して更新</strong>されます。
+      保存すると、<strong>工程表の該当「工場出荷」タスクの開始日・終了日（出荷期間）もここで指定した期間に連動して更新</strong>されます。
     </p>
     <input type="hidden" id="task-date-edit-id">
-    <div class="form-group">
-      <label>出荷日（新） *</label>
-      <input type="date" id="task-date-edit-new">
+    <div class="form-row">
+      <div class="form-group">
+        <label>開始日 *</label>
+        <input type="date" id="task-date-edit-start">
+      </div>
+      <div class="form-group">
+        <label>終了日 *</label>
+        <input type="date" id="task-date-edit-end">
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" type="button" onclick="closeTaskShipmentDateModal()">キャンセル</button>
@@ -623,7 +677,7 @@
   const sb = supabase.createClient(S_URL, S_KEY);
 
   let deliveries   = [];
-  /** 当月の tasks（text=工場出荷）ベース行（マージ前） */
+  /** 当月の tasks（text=工場出荷）メタ1件＝1タスク（日付展開前、_spanStart/_spanEnd） */
   let taskShipmentBases = [];
   /** 当月の tasks（text=工場出荷）を一覧用に正規化した行（補完マージ済み） */
   let taskShipments = [];
@@ -665,6 +719,113 @@
       if (v != null && String(v).trim() !== '') out[k] = v;
     }
     return out;
+  }
+
+  function ymdCmp(a, b) {
+    if (a < b) return -1;
+    if (a > b) return 1;
+    return 0;
+  }
+
+  function orderedSpan(startYmd, endYmd) {
+    if (!startYmd || !endYmd) return null;
+    return ymdCmp(startYmd, endYmd) <= 0
+      ? { start: startYmd, end: endYmd }
+      : { start: endYmd, end: startYmd };
+  }
+
+  function parseYmdLocalNoon(ymd) {
+    const [yy, mm, dd] = ymd.split('-').map(Number);
+    return new Date(yy, mm - 1, dd, 12, 0, 0, 0);
+  }
+
+  function formatYmdFromDate(dt) {
+    return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, '0')}-${String(dt.getDate()).padStart(2, '0')}`;
+  }
+
+  /** 期間同士の交差 [a,b]、なければ null（いずれも YYYY-MM-DD） */
+  function ymdRangeIntersection(start, end, winStart, winEnd) {
+    if (ymdCmp(end, winStart) < 0 || ymdCmp(start, winEnd) > 0) return null;
+    const a = ymdCmp(start, winStart) < 0 ? winStart : start;
+    const b = ymdCmp(end, winEnd) > 0 ? winEnd : end;
+    return ymdCmp(a, b) <= 0 ? [a, b] : null;
+  }
+
+  function enumerateYmdInclusive(startYmd, endYmd) {
+    const out = [];
+    let cur = parseYmdLocalNoon(startYmd);
+    const endDt = parseYmdLocalNoon(endYmd);
+    while (cur.getTime() <= endDt.getTime()) {
+      out.push(formatYmdFromDate(cur));
+      cur = new Date(cur);
+      cur.setDate(cur.getDate() + 1);
+    }
+    return out;
+  }
+
+  function buildTaskShipmentDisplayRow(meta, displayYmd, overlay) {
+    const row = {
+      _fromTask: true,
+      _taskId: meta._taskId,
+      date: displayYmd,
+      _spanStart: meta._spanStart,
+      _spanEnd: meta._spanEnd,
+      type: '出荷',
+      time_slot: null,
+      status: '予定',
+      project_number: meta.project_number,
+      machine_unit: meta.machine_unit,
+      product_name: meta.product_name,
+      quantity: null,
+      sales_rep: meta.sales_rep,
+      mfg_rep: null,
+      note: null,
+    };
+    return mergeTaskOverlayRow(row, overlay);
+  }
+
+  function expandTaskShipmentsForView(metas, viewStart, viewEnd) {
+    const rows = [];
+    for (const meta of metas) {
+      const inter = ymdRangeIntersection(meta._spanStart, meta._spanEnd, viewStart, viewEnd);
+      if (!inter) continue;
+      const [segA, segB] = inter;
+      const ov = taskOverlaysMap.get(String(meta._taskId));
+      for (const ymd of enumerateYmdInclusive(segA, segB)) {
+        rows.push(buildTaskShipmentDisplayRow(meta, ymd, ov));
+      }
+    }
+    return rows;
+  }
+
+  /** 複数日にまたがる工程表出荷のみ：入荷/出荷列用「1/3日」 */
+  function taskSpanDayBadgeHtml(entry) {
+    if (!entry || !entry._fromTask || !entry._spanStart || !entry._spanEnd) return '';
+    if (entry._spanStart === entry._spanEnd) return '';
+    const days = enumerateYmdInclusive(entry._spanStart, entry._spanEnd);
+    const total = days.length;
+    if (total <= 1) return '';
+    const disp = String(entry.date).slice(0, 10);
+    const idx = days.indexOf(disp);
+    if (idx < 0) return '';
+    const n = idx + 1;
+    const title = `出荷期間 ${entry._spanStart} ～ ${entry._spanEnd}（全${total}日）／この行は${n}日目`;
+    return `<span class="task-span-day-badge" title="${escapeAttr(title)}">${n}/${total}日</span>`;
+  }
+
+  /** 入荷/出荷セル：内側グリッドでバッジ位置を統一し、塊を列中央に */
+  function typeCellInnerHtml(entry) {
+    const dayPart = taskSpanDayBadgeHtml(entry);
+    return `<div class="type-cell-row">
+      <div class="type-cell-inner">
+        <span class="type-cell-badge">${typeBadge(entry.type)}</span>
+        <span class="type-cell-right">${dayPart}</span>
+      </div>
+    </div>`;
+  }
+
+  function taskShipmentNoteTriggerHtml(entry) {
+    return `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷期間を変更"><span class="task-source-tag">[工程表]</span>工場出荷</span>`;
   }
 
   function escapeAttr(s) {
@@ -805,10 +966,14 @@
       taskOverlaysMap.set(String(taskId), saved || { ...payload });
     }
 
-    const base = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
-    const si = taskShipments.findIndex(e => e._fromTask && String(e._taskId) === String(taskId));
-    if (base && si >= 0) {
-      taskShipments[si] = mergeTaskOverlayRow(base, taskOverlaysMap.get(String(taskId)));
+    const meta = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
+    const overlayRow = taskOverlaysMap.get(String(taskId));
+    if (meta) {
+      taskShipments = taskShipments.map(row =>
+        row._fromTask && String(row._taskId) === String(taskId)
+          ? buildTaskShipmentDisplayRow(meta, row.date, overlayRow)
+          : row
+      );
     }
   }
 
@@ -884,6 +1049,16 @@
     return s.length >= 10 ? s.slice(0, 10) : s;
   }
 
+  /** tasks の日付列 → YYYY-MM-DD */
+  function ymdFromTaskDate(raw) {
+    if (raw == null) return null;
+    const n = normalizeHolidayDate(raw);
+    if (n) return n;
+    const s = String(raw).trim();
+    const iso = s.match(/^(\d{4}-\d{2}-\d{2})/);
+    return iso ? iso[1] : (s.length >= 10 ? s.slice(0, 10) : null);
+  }
+
   // ─── 初期化 ───────────────────────────────────────────
   async function init() {
     const { data: hols, error: holErr } = await sb.from('holidays').select('date');
@@ -933,11 +1108,11 @@
     if (error) { showToast('データの読み込みに失敗しました', 'error'); return; }
     deliveries = data || [];
 
+    // start_date 未使用のDBでは列追加が必要。終了日が表示範囲より後のタスクも拾い、期間と表示範囲の重なりで絞る
     const { data: taskData, error: taskErr } = await sb.from('tasks')
-      .select('id, project_number, machine, major_item, text, end_date')
+      .select('id, project_number, machine, major_item, text, start_date, end_date')
       .eq('text', '工場出荷')
-      .gte('end_date', startDate)
-      .lte('end_date', endDate);
+      .gte('end_date', startDate);
 
     if (taskErr) {
       showToast('工程表（工場出荷）の読み込みに失敗しました', 'error');
@@ -945,33 +1120,31 @@
       taskShipments = [];
       taskOverlaysMap = new Map();
     } else {
-      const bases = (taskData || [])
+      const metas = (taskData || [])
         .map(t => {
-          const raw = t.end_date;
-          if (raw == null) return null;
-          const ymd = String(raw).slice(0, 10);
-          if (ymd < startDate || ymd > endDate) return null;
+          const endYmd = ymdFromTaskDate(t.end_date);
+          if (!endYmd) return null;
+          const startRaw = t.start_date != null ? ymdFromTaskDate(t.start_date) : null;
+          const startYmd = startRaw || endYmd;
+          const span = orderedSpan(startYmd, endYmd);
+          if (!span) return null;
+          if (!ymdRangeIntersection(span.start, span.end, startDate, endDate)) return null;
           return {
             _fromTask: true,
             _taskId: t.id,
-            date: ymd,
-            type: '出荷',
-            time_slot: null,
-            status: '予定',
+            _spanStart: span.start,
+            _spanEnd: span.end,
             project_number: t.project_number,
             machine_unit: t.machine,
             product_name: t.major_item,
-            quantity: null,
             sales_rep: salesPersonMap[t.project_number] || null,
-            mfg_rep: null,
-            note: null,
           };
         })
         .filter(Boolean);
 
-      taskShipmentBases = bases;
+      taskShipmentBases = metas;
       taskOverlaysMap = new Map();
-      const taskIds = [...new Set(bases.map(b => b._taskId).filter(id => id != null))];
+      const taskIds = [...new Set(metas.map(b => b._taskId).filter(id => id != null))];
       if (taskIds.length) {
         const { data: ovRows, error: ovErr } = await sb
           .from('task_shipment_overlays')
@@ -984,9 +1157,7 @@
         }
       }
 
-      taskShipments = bases.map(b =>
-        mergeTaskOverlayRow(b, taskOverlaysMap.get(String(b._taskId)))
-      );
+      taskShipments = expandTaskShipmentsForView(metas, startDate, endDate);
     }
 
     renderCalendar();
@@ -1070,7 +1241,7 @@
                  <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
               : '';
             const noteCell = fromTask
-              ? `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷日（終了日）を変更"><span class="task-source-tag">[工程表]</span>工場出荷</span>`
+              ? taskShipmentNoteTriggerHtml(entry)
               : (entry.note || '');
             const opCell = fromTask
               ? (idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
@@ -1079,7 +1250,7 @@
             if (fromTask) {
               tr.innerHTML = `
               ${dateCell}
-              <td style="text-align:center;">${typeBadge(entry.type)}</td>
+              <td class="td-type-cell">${typeCellInnerHtml(entry)}</td>
               <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
               <td style="text-align:center;">${taskStatusPickCell(entry)}</td>
               <td style="text-align:center;">${entry.project_number || ''}</td>
@@ -1093,7 +1264,7 @@
             } else {
               tr.innerHTML = `
               ${dateCell}
-              <td style="text-align:center;">${typeBadge(entry.type)}</td>
+              <td class="td-type-cell">${typeCellInnerHtml(entry)}</td>
               <td style="text-align:center;">${entry.time_slot || ''}</td>
               <td style="text-align:center;">${statusBadge(entry.status)}</td>
               <td style="text-align:center;">${entry.project_number || ''}</td>
@@ -1189,14 +1360,19 @@
     if (now - lastTaskShipmentDateModalOpen < 400) return;
     lastTaskShipmentDateModalOpen = now;
     const idStr = String(taskId);
-    const row = taskShipments.find(t => t._fromTask && String(t._taskId) === idStr);
-    const ymd = row && row.date ? String(row.date).slice(0, 10) : '';
+    const meta = taskShipmentBases.find(t => String(t._taskId) === idStr);
+    if (!meta) return;
     document.getElementById('task-date-edit-id').value = idStr;
-    document.getElementById('task-date-edit-new').value = ymd;
+    document.getElementById('task-date-edit-start').value = meta._spanStart;
+    document.getElementById('task-date-edit-end').value = meta._spanEnd;
     const pnEl = document.getElementById('task-date-edit-pn');
-    if (pnEl) pnEl.textContent = (row && row.project_number) ? String(row.project_number) : '—';
+    if (pnEl) {
+      pnEl.textContent = meta.project_number != null && String(meta.project_number).trim() !== ''
+        ? String(meta.project_number)
+        : '—';
+    }
     document.getElementById('task-date-modal-overlay').classList.add('show');
-    document.getElementById('task-date-edit-new').focus();
+    document.getElementById('task-date-edit-start').focus();
   }
 
   function closeTaskShipmentDateModal() {
@@ -1205,9 +1381,15 @@
 
   async function saveTaskShipmentDate() {
     const rawId = document.getElementById('task-date-edit-id').value;
-    const newDate = document.getElementById('task-date-edit-new').value;
-    if (!newDate) {
-      showToast('日付を入力してください', 'error');
+    const startIn = document.getElementById('task-date-edit-start').value;
+    const endIn = document.getElementById('task-date-edit-end').value;
+    if (!startIn || !endIn) {
+      showToast('開始日・終了日を入力してください', 'error');
+      return;
+    }
+    const span = orderedSpan(startIn, endIn);
+    if (!span) {
+      showToast('日付が不正です', 'error');
       return;
     }
     const taskId = Number(rawId);
@@ -1215,7 +1397,7 @@
 
     const { data, error } = await sb
       .from('tasks')
-      .update({ end_date: newDate })
+      .update({ start_date: span.start, end_date: span.end })
       .eq('id', taskId)
       .eq('text', '工場出荷')
       .select('id');
@@ -1229,7 +1411,7 @@
       return;
     }
 
-    showToast('工程表の出荷日を更新しました', 'success');
+    showToast('工程表の出荷期間を更新しました', 'success');
     closeTaskShipmentDateModal();
     await loadAndRender();
   }
@@ -1309,7 +1491,7 @@
 
   async function autoFillFromTasks(projectNumber) {
     const { data } = await sb.from('tasks')
-      .select('machine, major_item, text, end_date')
+      .select('machine, major_item, text, start_date, end_date')
       .eq('project_number', projectNumber)
       .limit(50);
 
