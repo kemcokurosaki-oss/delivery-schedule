@@ -269,6 +269,20 @@
       margin-right: 4px;
       vertical-align: middle;
     }
+    /* 出荷日変更：操作列のボタンではなく備考のラベルから開く */
+    tr.row-from-task .task-shipment-date-trigger {
+      cursor: pointer;
+      border-radius: 4px;
+      padding: 2px 4px;
+      margin: -2px -4px;
+      outline: none;
+    }
+    tr.row-from-task .task-shipment-date-trigger:hover {
+      background: #e8eaf6;
+    }
+    tr.row-from-task .task-shipment-date-trigger:focus-visible {
+      box-shadow: 0 0 0 2px rgba(92, 107, 192, 0.45);
+    }
     tr.row-from-task .sales-rep-auto {
       display: block;
       font-size: 12px;
@@ -313,6 +327,40 @@
       padding-bottom: 8px;
       border-bottom: 2px solid #1976D2;
       color: #1976D2;
+    }
+    /* 出荷日変更モーダル：工番を強調（フォントはメイリオ統一） */
+    .task-date-modal-kouban {
+      margin: 0 0 14px;
+      padding: 14px 16px;
+      background: linear-gradient(145deg, #e8eaf6 0%, #e3f2fd 55%, #fff 100%);
+      border: 2px solid #5c6bc0;
+      border-radius: 10px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(25, 118, 210, 0.12);
+      font-family: "Meiryo", "メイリオ", sans-serif;
+    }
+    .task-date-modal-kouban-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 800;
+      color: #3949ab;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+    .task-date-modal-kouban-value {
+      display: block;
+      font-size: 26px;
+      font-weight: 800;
+      color: #0d47a1;
+      letter-spacing: 0.06em;
+      line-height: 1.2;
+      word-break: break-all;
+    }
+    .task-date-modal-help {
+      font-size: 12px;
+      color: #444;
+      margin: 0 0 14px;
+      line-height: 1.55;
     }
     .form-row {
       display: flex;
@@ -542,6 +590,29 @@
   </div>
 </div>
 
+<!-- 工程表連携行：出荷日（tasks.end_date）変更 -->
+<div class="modal-overlay" id="task-date-modal-overlay">
+  <div class="modal" style="width:420px;">
+    <h2>出荷日を変更</h2>
+    <div class="task-date-modal-kouban">
+      <span class="task-date-modal-kouban-label">対象工番</span>
+      <span id="task-date-edit-pn" class="task-date-modal-kouban-value">—</span>
+    </div>
+    <p class="task-date-modal-help">
+      保存すると、<strong>工程表の該当「工場出荷」タスクの出荷日（終了日）もこの日付に連動して更新</strong>されます。
+    </p>
+    <input type="hidden" id="task-date-edit-id">
+    <div class="form-group">
+      <label>出荷日（新） *</label>
+      <input type="date" id="task-date-edit-new">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" type="button" onclick="closeTaskShipmentDateModal()">キャンセル</button>
+      <button class="btn-save" type="button" onclick="saveTaskShipmentDate()">保存</button>
+    </div>
+  </div>
+</div>
+
 <!-- トースト -->
 <div class="toast" id="toast"></div>
 
@@ -559,6 +630,9 @@
   /** task_id → task_shipment_overlays の1行（当月に該当するタスクのみ） */
   let taskOverlaysMap = new Map();
   const overlaySaveTimers = new Map();
+  /** 備考クリックの連続発火（ダブルクリック等）でモーダルが二重に開かないよう抑止 */
+  let lastTaskShipmentDateModalOpen = 0;
+
   let holidaySet   = new Set();
   let currentFilter = 'all';
   let autoFillTimer = null;
@@ -743,6 +817,12 @@
     if (!tbody || tbody.dataset.overlayBound) return;
     tbody.dataset.overlayBound = '1';
     tbody.addEventListener('click', e => {
+      const dateTrig = e.target.closest('.task-shipment-date-trigger');
+      if (dateTrig) {
+        const tid = dateTrig.dataset.taskId;
+        if (tid) openTaskShipmentDateModal(Number(tid));
+        return;
+      }
       const btn = e.target.closest('.task-pick-display');
       if (!btn) return;
       const wrap = btn.closest('[data-pick-wrap]');
@@ -778,6 +858,14 @@
         schedulePersistTaskOverlay(tr);
       }
     }, true);
+    tbody.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const trig = e.target.closest('.task-shipment-date-trigger');
+      if (!trig || !tbody.contains(trig)) return;
+      e.preventDefault();
+      const tid = trig.dataset.taskId;
+      if (tid) openTaskShipmentDateModal(Number(tid));
+    });
   }
 
   /** holidays.date が "YYYY/M/D" でもカレンダー日付（YYYY-MM-DD）と一致するよう正規化（工程表 gantt-resource.js と同じ） */
@@ -982,12 +1070,12 @@
                  <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
               : '';
             const noteCell = fromTask
-              ? `<span class="task-source-tag">[工程表]</span>工場出荷`
+              ? `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷日（終了日）を変更"><span class="task-source-tag">[工程表]</span>工場出荷</span>`
               : (entry.note || '');
             const opCell = fromTask
-              ? (idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
-              : `<button class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
-                 ${idx === 0 ? `<button class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}`;
+              ? (idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
+              : `<button type="button" class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
+                 ${idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}`;
             if (fromTask) {
               tr.innerHTML = `
               ${dateCell}
@@ -1094,6 +1182,56 @@
 
   function closeModal() {
     document.getElementById('modal-overlay').classList.remove('show');
+  }
+
+  function openTaskShipmentDateModal(taskId) {
+    const now = Date.now();
+    if (now - lastTaskShipmentDateModalOpen < 400) return;
+    lastTaskShipmentDateModalOpen = now;
+    const idStr = String(taskId);
+    const row = taskShipments.find(t => t._fromTask && String(t._taskId) === idStr);
+    const ymd = row && row.date ? String(row.date).slice(0, 10) : '';
+    document.getElementById('task-date-edit-id').value = idStr;
+    document.getElementById('task-date-edit-new').value = ymd;
+    const pnEl = document.getElementById('task-date-edit-pn');
+    if (pnEl) pnEl.textContent = (row && row.project_number) ? String(row.project_number) : '—';
+    document.getElementById('task-date-modal-overlay').classList.add('show');
+    document.getElementById('task-date-edit-new').focus();
+  }
+
+  function closeTaskShipmentDateModal() {
+    document.getElementById('task-date-modal-overlay').classList.remove('show');
+  }
+
+  async function saveTaskShipmentDate() {
+    const rawId = document.getElementById('task-date-edit-id').value;
+    const newDate = document.getElementById('task-date-edit-new').value;
+    if (!newDate) {
+      showToast('日付を入力してください', 'error');
+      return;
+    }
+    const taskId = Number(rawId);
+    if (!rawId || Number.isNaN(taskId)) return;
+
+    const { data, error } = await sb
+      .from('tasks')
+      .update({ end_date: newDate })
+      .eq('id', taskId)
+      .eq('text', '工場出荷')
+      .select('id');
+
+    if (error) {
+      showToast('工程表の更新に失敗しました: ' + error.message, 'error');
+      return;
+    }
+    if (!data || !data.length) {
+      showToast('対象タスクが見つかりません（工場出荷タスクのみ変更できます）', 'error');
+      return;
+    }
+
+    showToast('工程表の出荷日を更新しました', 'success');
+    closeTaskShipmentDateModal();
+    await loadAndRender();
   }
 
   function clearForm() {
@@ -1223,6 +1361,10 @@
   // ─── オーバーレイクリックで閉じる ─────────────────────
   document.getElementById('modal-overlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeModal();
+  });
+
+  document.getElementById('task-date-modal-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeTaskShipmentDateModal();
   });
 
   // ─── 起動 ──────────────────────────────────────────────
