@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       test_mode:
-        description: 'テスト（GMAIL_USER 宛のみ送信）'
+        description: 'テスト（e-kurosaki@kusakabe.com のみ宛）'
         required: false
         default: 'false'
         type: choice

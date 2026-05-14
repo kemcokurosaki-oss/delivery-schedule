@@ -3,7 +3,8 @@
  * 「今週・翌週」（月曜〜日曜×2、Asia/Tokyo）の行を集め、Gmail で通知する。
  *
  * Secrets: SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD,
- *          DELIVERY_NOTIFY_TO（カンマ区切りの To）
+ *          DELIVERY_NOTIFY_TO（本番・カンマ区切り。テストモード時は未設定でも可）
+ * テストモード（TEST_MODE=true）の宛先: TEST_RECIPIENT_EMAIL（コード内定数）
  */
 
 const nodemailer = require('nodemailer');
@@ -14,6 +15,9 @@ const GMAIL_USER = process.env.GMAIL_USER;
 const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
 const NOTIFY_TO_RAW = process.env.DELIVERY_NOTIFY_TO || '';
 const TEST_MODE = process.env.TEST_MODE === 'true';
+
+/** 手動テスト（TEST_MODE）時の宛先（本番は DELIVERY_NOTIFY_TO） */
+const TEST_RECIPIENT_EMAIL = 'e-kurosaki@kusakabe.com';
 
 const TASK_OVERLAY_KEYS = ['time_slot', 'status', 'quantity', 'mfg_rep', 'product_name'];
 
@@ -334,7 +338,7 @@ async function main() {
     auth: { user: GMAIL_USER, pass: GMAIL_PASS },
   });
 
-  const toList = TEST_MODE ? [GMAIL_USER] : recipients;
+  const toList = TEST_MODE ? [TEST_RECIPIENT_EMAIL] : recipients;
   const subject =
     (TEST_MODE ? '【テスト】' : '') +
     `【入出荷予定】${weekLabelYmd(week1Mon)}週・翌週のお知らせ`;
