@@ -419,6 +419,10 @@
       background: rgba(255, 255, 255, 0.55);
       box-shadow: inset 0 -1px 0 #1976D2;
     }
+    tr.row-from-task .task-inline-input.ghost:read-only,
+    tr.row-manual-delivery .task-inline-input.ghost:read-only {
+      cursor: default;
+    }
     tr.row-from-task .task-pick-wrap,
     tr.row-manual-delivery .task-pick-wrap {
       display: inline-flex;
@@ -1097,7 +1101,7 @@
       `<option value="${o}"${v === o ? ' selected' : ''}>${o}</option>`
     ).join('');
     return `<div class="task-pick-wrap" data-pick-wrap="type">
-      <button type="button" class="task-pick-display task-pick-type" aria-label="入荷／出荷を編集">${typeBadge(v)}</button>
+      <button type="button" class="task-pick-display task-pick-type" aria-label="入荷／出荷をダブルクリックで編集">${typeBadge(v)}</button>
       <select data-overlay="type" class="task-pick-control" style="display:none">${opts}</select>
     </div>`;
   }
@@ -1114,7 +1118,7 @@
       .replace(/\r?\n/g, ' ');
   }
 
-  /** 時間帯: 通常はテキスト表示、クリックでプルダウン */
+  /** 時間帯: 通常はテキスト表示、ダブルクリックでプルダウン */
   function taskTimeSlotPickCell(entry) {
     const v = (entry.time_slot || '').trim();
     const opts = ['午前', '午後', '昼前後'].map(o =>
@@ -1124,19 +1128,19 @@
       ? escapeAttr(v)
       : '<span class="task-pick-placeholder">—</span>';
     return `<div class="task-pick-wrap" data-pick-wrap="time_slot">
-      <button type="button" class="task-pick-display task-pick-time" aria-label="時間帯を編集">${disp}</button>
+      <button type="button" class="task-pick-display task-pick-time" aria-label="時間帯をダブルクリックで編集">${disp}</button>
       <select data-overlay="time_slot" class="task-pick-control" style="display:none"><option value=""></option>${opts}</select>
     </div>`;
   }
 
-  /** 予定状態: 通常は色付きバッジ、クリックでプルダウン */
+  /** 予定状態: 通常は色付きバッジ、ダブルクリックでプルダウン */
   function taskStatusPickCell(entry) {
     const isK = entry.status === '確定';
     const badge = isK
       ? '<span class="status-badge kakutei">確定</span>'
       : '<span class="status-badge yotei">予定</span>';
     return `<div class="task-pick-wrap" data-pick-wrap="status">
-      <button type="button" class="task-pick-display task-pick-status" aria-label="予定状態を編集">${badge}</button>
+      <button type="button" class="task-pick-display task-pick-status" aria-label="予定状態をダブルクリックで編集">${badge}</button>
       <select data-overlay="status" class="task-pick-control" style="display:none">` +
       `<option value="予定"${!isK ? ' selected' : ''}>予定</option>` +
       `<option value="確定"${isK ? ' selected' : ''}>確定</option></select>
@@ -1163,10 +1167,21 @@
     }
   }
 
+  function collapseTaskPickSelect(sel) {
+    if (!sel || sel.tagName !== 'SELECT' || !sel.classList.contains('task-pick-control')) return;
+    const wrap = sel.closest('[data-pick-wrap]');
+    if (!wrap) return;
+    syncPickDisplay(wrap);
+    sel.style.display = 'none';
+    const btn = wrap.querySelector('.task-pick-display');
+    if (btn) btn.style.display = '';
+    if (document.activeElement === sel) sel.blur();
+  }
+
   function taskInlineTextInput(field, entry, extraStyle = '', extraClass = '') {
     const val = escapeAttr(entry[field] || '');
     const c = 'task-inline-input ghost' + (extraClass ? ' ' + extraClass : '');
-    return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}">`;
+    return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}" readonly title="ダブルクリックで編集">`;
   }
 
   /** 営業担当セル: 常に読み取り専用（DBから自動補完） */
@@ -1352,7 +1367,21 @@
       if (dateTrig) {
         const tid = dateTrig.dataset.taskId;
         if (tid) openTaskShipmentDateModal(Number(tid));
-        return;
+      }
+    });
+    tbody.addEventListener('dblclick', e => {
+      const inp = e.target.closest('input.task-inline-input.ghost');
+      if (inp && tbody.contains(inp)) {
+        const tr = inp.closest('tr.row-from-task') || inp.closest('tr.row-manual-delivery');
+        if (tr) {
+          e.preventDefault();
+          inp.readOnly = false;
+          inp.focus();
+          try {
+            inp.select();
+          } catch (_) {}
+          return;
+        }
       }
       const btn = e.target.closest('.task-pick-display');
       if (!btn) return;
@@ -1361,6 +1390,7 @@
       if (!wrap || !tr) return;
       const sel = wrap.querySelector('select.task-pick-control');
       if (!sel) return;
+      e.preventDefault();
       btn.style.display = 'none';
       sel.style.display = '';
       sel.focus();
@@ -1372,6 +1402,9 @@
       const trMan = t.closest('tr.row-manual-delivery');
       if (trTask) schedulePersistTaskOverlay(trTask);
       else if (trMan) schedulePersistDelivery(trMan);
+      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
+        collapseTaskPickSelect(t);
+      }
     });
     tbody.addEventListener('blur', e => {
       const t = e.target;
@@ -1381,11 +1414,7 @@
       const tr = trTask || trMan;
       if (!tr) return;
       if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
-        const wrap = t.closest('[data-pick-wrap]');
-        syncPickDisplay(wrap);
-        t.style.display = 'none';
-        const btn = wrap && wrap.querySelector('.task-pick-display');
-        if (btn) btn.style.display = '';
+        collapseTaskPickSelect(t);
         if (trTask) schedulePersistTaskOverlay(trTask);
         else if (trMan) schedulePersistDelivery(trMan);
         return;
@@ -1393,9 +1422,18 @@
       if (t.tagName === 'INPUT' && t.classList.contains('ghost')) {
         if (trTask) schedulePersistTaskOverlay(trTask);
         else if (trMan) schedulePersistDelivery(trMan);
+        t.readOnly = true;
       }
     }, true);
     tbody.addEventListener('keydown', e => {
+      if (e.key === 'Enter') {
+        const ghost = e.target.closest('input.task-inline-input.ghost');
+        if (ghost && tbody.contains(ghost) && !ghost.readOnly) {
+          e.preventDefault();
+          ghost.blur();
+          return;
+        }
+      }
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const trig = e.target.closest('.task-shipment-date-trigger');
       if (!trig || !tbody.contains(trig)) return;
