@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="工場の入荷・出荷予定を一覧表示し、手動追加や工程表連携の行をインライン編集できます。">
   <title>入出荷予定一覧</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='72' font-size='86' text-anchor='middle' font-family='Meiryo,メイリオ,sans-serif'>🚚</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -68,6 +69,53 @@
     .filter-btn.active { background: rgba(255,255,255,0.9); color: #1B3A6B; font-weight: 700; }
     .filter-btn:hover { background: rgba(255,255,255,0.3); }
     .filter-btn.active:hover { background: rgba(255,255,255,0.95); }
+
+    /* ページヘッダー直下に固定（一覧の自動スクロール後も表示が残る） */
+    .save-banner {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 48px;
+      z-index: 120;
+      box-sizing: border-box;
+      max-height: 88px;
+      overflow: hidden;
+      margin: 0;
+      padding: 0 16px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+      line-height: 1.45;
+      pointer-events: none;
+      transform: translateY(-120%);
+      opacity: 0;
+      transition:
+        transform 0.36s cubic-bezier(0.4, 0, 0.2, 1),
+        opacity 0.28s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+    }
+    .save-banner.is-success {
+      background: #2e7d32;
+      color: #fff;
+      border-bottom: 1px solid #1b5e20;
+    }
+    .save-banner.is-error {
+      background: #c62828;
+      color: #fff;
+      border-bottom: 1px solid #b71c1c;
+    }
+    .save-banner.is-open {
+      transform: translateY(0);
+      opacity: 1;
+      padding: 12px 16px;
+    }
+    .save-banner.is-closing {
+      transform: translateY(-120%);
+      opacity: 0;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+
     .table-container {
       padding: 0 12px 12px;
     }
@@ -253,9 +301,7 @@
       font-size: 11px;
       margin: 1px;
     }
-    .op-btn.edit  { color: #1976D2; border-color: #90caf9; }
     .op-btn.del   { color: #c62828; border-color: #ef9a9a; }
-    .op-btn.edit:hover { background: #e3f2fd; }
     .op-btn.del:hover  { background: #ffebee; }
     .op-btn.add-day {
       color: #43a047;
@@ -265,49 +311,65 @@
     }
     .op-btn.add-day:hover { background: #e8f5e9; }
 
-    /* 工程表タスク由来の行（セル内インライン補完）— 入荷/出荷列は折り返さない */
-    tr.row-from-task td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+    /* 工程表タスク行・手動登録行（セル内インライン編集）— 入荷/出荷列は折り返さない */
+    tr.row-from-task td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+    tr.row-manual-delivery td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
       background: #fafafa;
       white-space: normal;
       vertical-align: middle;
     }
-    tr.row-from-task td.td-type-cell {
+    tr.row-from-task td.td-type-cell,
+    tr.row-manual-delivery td.td-type-cell {
       background: #fafafa;
     }
-    tr.row-from-task td.td-col-status {
+    tr.row-from-task td.td-col-status,
+    tr.row-manual-delivery td.td-col-status {
       background: #fafafa;
       white-space: nowrap;
     }
-    /* 土日祝のタスク行：上の #fafafa より :not の数で詳細度を上げ、セル・時刻枠まで休日色で統一 */
+    /* 土日祝：上の #fafafa より :not の数で詳細度を上げ、セル・時刻枠まで休日色で統一 */
     tr.row-from-task.sunday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
-    tr.row-from-task.holiday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+    tr.row-from-task.holiday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+    tr.row-manual-delivery.sunday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+    tr.row-manual-delivery.holiday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
       background: #fce4ec;
     }
-    tr.row-from-task.saturday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+    tr.row-from-task.saturday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+    tr.row-manual-delivery.saturday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
       background: #e3f2fd;
     }
     tr.row-from-task.sunday td.td-type-cell,
-    tr.row-from-task.holiday td.td-type-cell {
+    tr.row-from-task.holiday td.td-type-cell,
+    tr.row-manual-delivery.sunday td.td-type-cell,
+    tr.row-manual-delivery.holiday td.td-type-cell {
       background: #fce4ec;
     }
-    tr.row-from-task.saturday td.td-type-cell {
+    tr.row-from-task.saturday td.td-type-cell,
+    tr.row-manual-delivery.saturday td.td-type-cell {
       background: #e3f2fd;
     }
     tr.row-from-task.sunday td.td-col-status,
-    tr.row-from-task.holiday td.td-col-status {
+    tr.row-from-task.holiday td.td-col-status,
+    tr.row-manual-delivery.sunday td.td-col-status,
+    tr.row-manual-delivery.holiday td.td-col-status {
       background: #fce4ec;
     }
-    tr.row-from-task.saturday td.td-col-status {
+    tr.row-from-task.saturday td.td-col-status,
+    tr.row-manual-delivery.saturday td.td-col-status {
       background: #e3f2fd;
     }
     tr.row-from-task.sunday .task-pick-control,
-    tr.row-from-task.holiday .task-pick-control {
+    tr.row-from-task.holiday .task-pick-control,
+    tr.row-manual-delivery.sunday .task-pick-control,
+    tr.row-manual-delivery.holiday .task-pick-control {
       background: #fce4ec;
     }
-    tr.row-from-task.saturday .task-pick-control {
+    tr.row-from-task.saturday .task-pick-control,
+    tr.row-manual-delivery.saturday .task-pick-control {
       background: #e3f2fd;
     }
-    tr.row-from-task .task-inline-input.ghost {
+    tr.row-from-task .task-inline-input.ghost,
+    tr.row-manual-delivery .task-inline-input.ghost {
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
@@ -319,12 +381,14 @@
       background: transparent;
       box-shadow: none;
     }
-    tr.row-from-task .task-inline-input.ghost:focus {
+    tr.row-from-task .task-inline-input.ghost:focus,
+    tr.row-manual-delivery .task-inline-input.ghost:focus {
       outline: none;
       background: rgba(255, 255, 255, 0.55);
       box-shadow: inset 0 -1px 0 #1976D2;
     }
-    tr.row-from-task .task-pick-wrap {
+    tr.row-from-task .task-pick-wrap,
+    tr.row-manual-delivery .task-pick-wrap {
       display: inline-flex;
       flex-direction: column;
       align-items: center;
@@ -332,7 +396,8 @@
       min-width: 48px;
       max-width: 100%;
     }
-    tr.row-from-task .task-pick-display {
+    tr.row-from-task .task-pick-display,
+    tr.row-manual-delivery .task-pick-display {
       border: none;
       background: transparent;
       padding: 2px 4px;
@@ -344,25 +409,30 @@
       text-align: center;
       color: inherit;
     }
-    tr.row-from-task .task-pick-display.task-pick-status {
+    tr.row-from-task .task-pick-display.task-pick-status,
+    tr.row-manual-delivery .task-pick-display.task-pick-status {
       padding: 0;
       display: inline-flex;
       align-items: center;
       justify-content: center;
     }
-    tr.row-from-task .task-pick-wrap[data-pick-wrap="status"] {
+    tr.row-from-task .task-pick-wrap[data-pick-wrap="status"],
+    tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="status"] {
       min-width: 0;
       width: 100%;
       max-width: 100%;
     }
-    tr.row-from-task .task-pick-display:hover {
+    tr.row-from-task .task-pick-display:hover,
+    tr.row-manual-delivery .task-pick-display:hover {
       filter: brightness(0.92);
     }
-    tr.row-from-task .task-pick-placeholder {
+    tr.row-from-task .task-pick-placeholder,
+    tr.row-manual-delivery .task-pick-placeholder {
       color: #aaa;
       font-weight: 400;
     }
-    tr.row-from-task .task-pick-control {
+    tr.row-from-task .task-pick-control,
+    tr.row-manual-delivery .task-pick-control {
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
@@ -542,36 +612,40 @@
       font-size: 13px;
     }
     .btn-cancel:hover { background: #f5f5f5; }
-    .btn-delete-modal {
-      background: #ffebee;
-      color: #c62828;
-      border: 1px solid #ef9a9a;
-      padding: 7px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 13px;
-      margin-right: auto;
-    }
-    .btn-delete-modal:hover { background: #ffcdd2; }
 
-    /* トースト通知 */
-    .toast {
+    /* 手動行：右クリックコンテキストメニュー */
+    .delivery-ctx-menu {
       position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #323232;
-      color: white;
-      padding: 10px 18px;
-      border-radius: 4px;
-      font-size: 13px;
-      z-index: 300;
-      opacity: 0;
-      transform: translateY(10px);
-      transition: all 0.25s;
+      z-index: 260;
+      min-width: 160px;
+      padding: 4px 0;
+      margin: 0;
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.18);
     }
-    .toast.show { opacity: 1; transform: translateY(0); }
-    .toast.success { background: #2E7D32; }
-    .toast.error   { background: #c62828; }
+    .delivery-ctx-item {
+      display: block;
+      width: 100%;
+      padding: 8px 14px;
+      border: none;
+      background: none;
+      text-align: left;
+      font: inherit;
+      font-size: 13px;
+      cursor: pointer;
+      color: #333;
+    }
+    .delivery-ctx-item:hover {
+      background: #e3f2fd;
+    }
+    .delivery-ctx-item.delivery-ctx-danger {
+      color: #c62828;
+    }
+    .delivery-ctx-item.delivery-ctx-danger:hover {
+      background: #ffebee;
+    }
   </style>
 </head>
 <body>
@@ -586,6 +660,8 @@
     <button class="filter-btn"        id="filter-shukka" onclick="setFilter('出荷')">出荷のみ</button>
   </span>
 </div>
+
+<div id="save-banner" class="save-banner" role="status" aria-live="polite" aria-hidden="true"></div>
 
 <!-- テーブル -->
 <div class="table-container">
@@ -613,11 +689,10 @@
   </table>
 </div>
 
-<!-- 追加/編集モーダル -->
+<!-- 追加モーダル（手動行の編集は一覧のインライン編集） -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
     <h2 id="modal-title">入出荷エントリ 追加</h2>
-    <input type="hidden" id="edit-id">
 
     <div class="form-row">
       <div class="form-group" style="flex:2;">
@@ -695,7 +770,6 @@
     </div>
 
     <div class="modal-actions">
-      <button class="btn-delete-modal" id="btn-delete-modal" style="display:none;" onclick="deleteEntry()">削除</button>
       <button class="btn-cancel" onclick="closeModal()">キャンセル</button>
       <button class="btn-save" onclick="saveEntry()">保存</button>
     </div>
@@ -731,8 +805,28 @@
   </div>
 </div>
 
-<!-- トースト -->
-<div class="toast" id="toast"></div>
+<!-- 手動 deliveries 行：右クリックメニュー用（日付変更・削除） -->
+<div id="delivery-ctx-menu" class="delivery-ctx-menu" style="display:none;" role="menu" aria-hidden="true">
+  <button type="button" class="delivery-ctx-item" id="delivery-ctx-change-date">日付変更</button>
+  <button type="button" class="delivery-ctx-item delivery-ctx-danger" id="delivery-ctx-delete">削除</button>
+</div>
+
+<!-- 手動行の日付変更（カレンダー＝ type=date） -->
+<div class="modal-overlay" id="delivery-move-date-overlay">
+  <div class="modal" style="width:380px;">
+    <h2>日付を変更</h2>
+    <p class="task-date-modal-help">変更後の日付を、下のカレンダーから選んでください。</p>
+    <input type="hidden" id="delivery-move-date-id">
+    <div class="form-group">
+      <label>変更後の日付 *</label>
+      <input type="date" id="delivery-move-date-input">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" type="button" onclick="closeDeliveryMoveDateModal()">キャンセル</button>
+      <button class="btn-save" type="button" onclick="saveDeliveryMoveDate()">保存</button>
+    </div>
+  </div>
+</div>
 
 <script>
   const S_URL = "https://dgekjzkrybrswsxlcbvh.supabase.co";
@@ -748,6 +842,42 @@
   /** task_id → task_shipment_overlays の1行（当月に該当するタスクのみ） */
   let taskOverlaysMap = new Map();
   const overlaySaveTimers = new Map();
+  const deliverySaveTimers = new Map();
+  /** renderCalendar 直後に該当行へスクロール（{ deliveryId } または { taskId }） */
+  let pendingScrollSpec = null;
+
+  function attrSel(s) {
+    return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
+  function requestScrollAfterNextRender(spec) {
+    if (!spec || (spec.deliveryId == null && spec.taskId == null)) {
+      pendingScrollSpec = null;
+      return;
+    }
+    pendingScrollSpec = {
+      deliveryId: spec.deliveryId != null ? String(spec.deliveryId) : null,
+      taskId: spec.taskId != null ? String(spec.taskId) : null,
+    };
+  }
+
+  function applyPendingScroll() {
+    if (!pendingScrollSpec) return;
+    const { deliveryId, taskId } = pendingScrollSpec;
+    pendingScrollSpec = null;
+    requestAnimationFrame(() => {
+      if (deliveryId) {
+        const tr = document.querySelector(
+          `tr.row-manual-delivery[data-delivery-id="${attrSel(deliveryId)}"]`
+        );
+        if (tr) tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (taskId) {
+        const tr = document.querySelector(`tr.row-from-task[data-task-id="${attrSel(taskId)}"]`);
+        if (tr) tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    });
+  }
+
   /** 備考クリックの連続発火（ダブルクリック等）でモーダルが二重に開かないよう抑止 */
   let lastTaskShipmentDateModalOpen = 0;
 
@@ -888,6 +1018,19 @@
     </div>`;
   }
 
+  /** 手動 deliveries 行：入荷／出荷をプルダウンで切替 */
+  function deliveryTypePickCell(entry) {
+    let v = (entry.type || '').trim();
+    if (v !== '入荷' && v !== '出荷') v = '出荷';
+    const opts = ['入荷', '出荷'].map(o =>
+      `<option value="${o}"${v === o ? ' selected' : ''}>${o}</option>`
+    ).join('');
+    return `<div class="task-pick-wrap" data-pick-wrap="type">
+      <button type="button" class="task-pick-display task-pick-type" aria-label="入荷／出荷を編集">${typeBadge(v)}</button>
+      <select data-overlay="type" class="task-pick-control" style="display:none">${opts}</select>
+    </div>`;
+  }
+
   function taskShipmentNoteTriggerHtml(entry) {
     return `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷期間を変更"><span class="task-source-tag">[工程表]</span>工場出荷</span>`;
   }
@@ -929,13 +1072,16 @@
     </div>`;
   }
 
-  function syncTaskPickDisplay(wrap) {
+  function syncPickDisplay(wrap) {
     if (!wrap) return;
     const pick = wrap.getAttribute('data-pick-wrap');
     const sel = wrap.querySelector('select.task-pick-control');
     const btn = wrap.querySelector('.task-pick-display');
     if (!sel || !btn) return;
-    if (pick === 'time_slot') {
+    if (pick === 'type') {
+      const v = (sel.value || '').trim();
+      btn.innerHTML = v === '入荷' || v === '出荷' ? typeBadge(v) : '<span class="task-pick-placeholder">—</span>';
+    } else if (pick === 'time_slot') {
       const v = (sel.value || '').trim();
       btn.innerHTML = v ? escapeAttr(v) : '<span class="task-pick-placeholder">—</span>';
     } else if (pick === 'status') {
@@ -1001,7 +1147,6 @@
       if (!taskOverlaysMap.has(String(taskId))) return;
       const { error } = await sb.from('task_shipment_overlays').delete().eq('task_id', taskId);
       if (error) {
-        showToast('補完の保存に失敗しました: ' + error.message, 'error');
         await loadAndRender();
         return;
       }
@@ -1022,12 +1167,17 @@
         .upsert(payload, { onConflict: 'task_id' })
         .select();
       if (error) {
-        showToast('補完の保存に失敗しました: ' + error.message, 'error');
         await loadAndRender();
         return;
       }
       const saved = savedRows && savedRows[0];
       taskOverlaysMap.set(String(taskId), saved || { ...payload });
+    }
+
+    if (tr.isConnected) {
+      requestAnimationFrame(() => {
+        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
     }
 
     const meta = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
@@ -1038,6 +1188,87 @@
           ? buildTaskShipmentDisplayRow(meta, row.date, overlayRow)
           : row
       );
+    }
+  }
+
+  function gatherDeliveryPayloadFromRow(tr) {
+    const get = key => {
+      const el = tr.querySelector(`[data-overlay="${key}"]`);
+      if (!el) return null;
+      const raw = el.value != null ? String(el.value).trim() : '';
+      return raw === '' ? null : raw;
+    };
+    return {
+      type: get('type'),
+      time_slot: get('time_slot'),
+      status: get('status'),
+      project_number: get('project_number'),
+      machine_unit: get('machine_unit'),
+      product_name: get('product_name'),
+      quantity: get('quantity'),
+      sales_rep: get('sales_rep'),
+      mfg_rep: get('mfg_rep'),
+      note: get('note'),
+    };
+  }
+
+  function schedulePersistDelivery(tr) {
+    const id = tr.dataset.deliveryId;
+    if (!id) return;
+    const prev = deliverySaveTimers.get(id);
+    if (prev) clearTimeout(prev);
+    deliverySaveTimers.set(id, setTimeout(() => {
+      deliverySaveTimers.delete(id);
+      persistDeliveryRow(tr);
+    }, 400));
+  }
+
+  async function persistDeliveryRow(tr) {
+    const rawId = tr.dataset.deliveryId;
+    if (!rawId) return;
+
+    const gathered = gatherDeliveryPayloadFromRow(tr);
+    const typeVal = (gathered.type && String(gathered.type).trim()) || null;
+    if (!typeVal) {
+      await loadAndRender();
+      return;
+    }
+
+    const payload = {
+      type: typeVal,
+      time_slot: gathered.time_slot,
+      status: gathered.status || null,
+      project_number: gathered.project_number,
+      machine_unit: gathered.machine_unit,
+      product_name: gathered.product_name,
+      quantity: gathered.quantity,
+      sales_rep: gathered.sales_rep,
+      mfg_rep: gathered.mfg_rep,
+      note: gathered.note,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { error } = await sb.from('deliveries').update(payload).eq('id', rawId);
+    if (error) {
+      showToast('保存に失敗しました: ' + error.message, 'error');
+      await loadAndRender();
+      return;
+    }
+
+    const i = deliveries.findIndex(e => String(e.id) === String(rawId));
+    const prevRow = i >= 0 ? { ...deliveries[i] } : null;
+    if (i >= 0) Object.assign(deliveries[i], payload);
+    const typeChanged = prevRow && (prevRow.type || '') !== (payload.type || '');
+    const pnChanged =
+      prevRow &&
+      String(prevRow.project_number || '').trim() !== String(payload.project_number || '').trim();
+    if (typeChanged || pnChanged) {
+      requestScrollAfterNextRender({ deliveryId: rawId });
+      renderCalendar();
+    } else if (tr.isConnected) {
+      requestAnimationFrame(() => {
+        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
     }
   }
 
@@ -1055,7 +1286,7 @@
       const btn = e.target.closest('.task-pick-display');
       if (!btn) return;
       const wrap = btn.closest('[data-pick-wrap]');
-      const tr = wrap && wrap.closest('tr.row-from-task');
+      const tr = wrap && (wrap.closest('tr.row-from-task') || wrap.closest('tr.row-manual-delivery'));
       if (!wrap || !tr) return;
       const sel = wrap.querySelector('select.task-pick-control');
       if (!sel) return;
@@ -1066,25 +1297,31 @@
     tbody.addEventListener('change', e => {
       const t = e.target;
       if (!t || !t.dataset || !t.dataset.overlay) return;
-      const tr = t.closest('tr.row-from-task');
-      if (tr) schedulePersistTaskOverlay(tr);
+      const trTask = t.closest('tr.row-from-task');
+      const trMan = t.closest('tr.row-manual-delivery');
+      if (trTask) schedulePersistTaskOverlay(trTask);
+      else if (trMan) schedulePersistDelivery(trMan);
     });
     tbody.addEventListener('blur', e => {
       const t = e.target;
       if (!t || !t.dataset || !t.dataset.overlay) return;
-      const tr = t.closest('tr.row-from-task');
+      const trTask = t.closest('tr.row-from-task');
+      const trMan = t.closest('tr.row-manual-delivery');
+      const tr = trTask || trMan;
       if (!tr) return;
       if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
         const wrap = t.closest('[data-pick-wrap]');
-        syncTaskPickDisplay(wrap);
+        syncPickDisplay(wrap);
         t.style.display = 'none';
         const btn = wrap && wrap.querySelector('.task-pick-display');
         if (btn) btn.style.display = '';
-        schedulePersistTaskOverlay(tr);
+        if (trTask) schedulePersistTaskOverlay(trTask);
+        else if (trMan) schedulePersistDelivery(trMan);
         return;
       }
       if (t.tagName === 'INPUT' && t.classList.contains('ghost')) {
-        schedulePersistTaskOverlay(tr);
+        if (trTask) schedulePersistTaskOverlay(trTask);
+        else if (trMan) schedulePersistDelivery(trMan);
       }
     }, true);
     tbody.addEventListener('keydown', e => {
@@ -1095,6 +1332,120 @@
       const tid = trig.dataset.taskId;
       if (tid) openTaskShipmentDateModal(Number(tid));
     });
+  }
+
+  function hideDeliveryContextMenu() {
+    const menu = document.getElementById('delivery-ctx-menu');
+    if (!menu) return;
+    menu.style.display = 'none';
+    menu.setAttribute('aria-hidden', 'true');
+  }
+
+  function showDeliveryContextMenu(clientX, clientY, deliveryId, currentYmd) {
+    const menu = document.getElementById('delivery-ctx-menu');
+    if (!menu || !deliveryId) return;
+    menu.dataset.deliveryId = deliveryId;
+    menu.dataset.deliveryDate = currentYmd || '';
+    menu.style.display = 'block';
+    menu.setAttribute('aria-hidden', 'false');
+    const w = menu.offsetWidth || 180;
+    const h = menu.offsetHeight || 80;
+    let x = clientX + 2;
+    let y = clientY + 2;
+    x = Math.max(8, Math.min(x, window.innerWidth - w - 8));
+    y = Math.max(8, Math.min(y, window.innerHeight - h - 8));
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+  }
+
+  function bindManualDeliveryContextMenu() {
+    const tbody = document.getElementById('table-body');
+    if (!tbody || tbody.dataset.manualCtxBound) return;
+    tbody.dataset.manualCtxBound = '1';
+    tbody.addEventListener('contextmenu', e => {
+      const tr = e.target.closest('tr.row-manual-delivery');
+      if (!tr || !tbody.contains(tr)) return;
+      e.preventDefault();
+      const id = tr.dataset.deliveryId;
+      const ymd = tr.dataset.deliveryDate || '';
+      if (!id) return;
+      showDeliveryContextMenu(e.clientX, e.clientY, id, ymd);
+    });
+  }
+
+  function onDeliveryCtxChangeDate() {
+    const menu = document.getElementById('delivery-ctx-menu');
+    const id = menu && menu.dataset.deliveryId;
+    const cur = menu && menu.dataset.deliveryDate;
+    hideDeliveryContextMenu();
+    if (!id) return;
+    openDeliveryMoveDateModal(id, cur);
+  }
+
+  function onDeliveryCtxDelete() {
+    const menu = document.getElementById('delivery-ctx-menu');
+    const id = menu && menu.dataset.deliveryId;
+    hideDeliveryContextMenu();
+    if (!id) return;
+    if (!confirm('このタスクを削除しますか？')) return;
+    executeDeleteDelivery(id);
+  }
+
+  function openDeliveryMoveDateModal(deliveryId, currentYmd) {
+    document.getElementById('delivery-move-date-id').value = deliveryId;
+    const inp = document.getElementById('delivery-move-date-input');
+    inp.value = (currentYmd || '').slice(0, 10);
+    document.getElementById('delivery-move-date-overlay').classList.add('show');
+    inp.focus();
+  }
+
+  function closeDeliveryMoveDateModal() {
+    document.getElementById('delivery-move-date-overlay').classList.remove('show');
+  }
+
+  async function saveDeliveryMoveDate() {
+    const rawId = document.getElementById('delivery-move-date-id').value;
+    const newDate = document.getElementById('delivery-move-date-input').value;
+    if (!rawId || !newDate) {
+      showToast('日付を選んでください', 'error');
+      return;
+    }
+    const entry = deliveries.find(e => String(e.id) === String(rawId));
+    if (!entry) {
+      showToast('データが見つかりません', 'error');
+      closeDeliveryMoveDateModal();
+      await loadAndRender();
+      return;
+    }
+    const oldSlice = (entry.date || '').slice(0, 10);
+    if (oldSlice === newDate) {
+      closeDeliveryMoveDateModal();
+      return;
+    }
+    const { error } = await sb
+      .from('deliveries')
+      .update({ date: newDate, updated_at: new Date().toISOString() })
+      .eq('id', rawId);
+    if (error) {
+      showToast('日付の更新に失敗しました: ' + error.message, 'error');
+      return;
+    }
+    closeDeliveryMoveDateModal();
+    showToast('日付を変更しました', 'success');
+    requestScrollAfterNextRender({ deliveryId: rawId });
+    await loadAndRender();
+  }
+
+  async function executeDeleteDelivery(id) {
+    if (id == null || id === '') return;
+    const { error } = await sb.from('deliveries').delete().eq('id', id);
+    if (error) {
+      showToast('削除に失敗しました: ' + error.message, 'error');
+      return;
+    }
+    deliveries = deliveries.filter(e => String(e.id) !== String(id));
+    showToast('削除しました', 'success');
+    renderCalendar();
   }
 
   /** holidays.date が "YYYY/M/D" でもカレンダー日付（YYYY-MM-DD）と一致するよう正規化（工程表 gantt-resource.js と同じ） */
@@ -1126,7 +1477,7 @@
   // ─── 初期化 ───────────────────────────────────────────
   async function init() {
     const { data: hols, error: holErr } = await sb.from('holidays').select('date');
-    if (holErr) showToast('祝日・休日データの読み込みに失敗しました', 'error');
+    if (holErr) { /* 祝日データは無くても一覧は利用可 */ }
     if (hols) {
       hols.forEach(r => {
         const ymd = normalizeHolidayDate(r.date);
@@ -1169,7 +1520,10 @@
       salesPersonMap = {};
     }
 
-    if (error) { showToast('データの読み込みに失敗しました', 'error'); return; }
+    if (error) {
+      pendingScrollSpec = null;
+      return;
+    }
     deliveries = data || [];
 
     // start_date 未使用のDBでは列追加が必要。終了日が表示範囲より後のタスクも拾い、期間と表示範囲の重なりで絞る
@@ -1179,7 +1533,6 @@
       .gte('end_date', startDate);
 
     if (taskErr) {
-      showToast('工程表（工場出荷）の読み込みに失敗しました', 'error');
       taskShipmentBases = [];
       taskShipments = [];
       taskOverlaysMap = new Map();
@@ -1215,7 +1568,7 @@
           .select('*')
           .in('task_id', taskIds);
         if (ovErr) {
-          showToast('補完データの読み込みに失敗しました（一覧は表示されます）', 'error');
+          /* 補完なしで一覧表示 */
         } else if (ovRows) {
           ovRows.forEach(r => taskOverlaysMap.set(String(r.task_id), r));
         }
@@ -1226,6 +1579,7 @@
 
     renderCalendar();
     bindTableOverlayListeners();
+    bindManualDeliveryContextMenu();
   }
 
   /** 同日・同工番の手動出荷があれば工程表タスク行は二重表示しない */
@@ -1297,8 +1651,16 @@
           dayEntries.forEach((entry, idx) => {
             const tr = document.createElement('tr');
             const fromTask = !!entry._fromTask;
-            tr.className = rowClass + (fromTask ? ' row-from-task' : '') + (dateStr === todayStr ? ' today' : '');
+            tr.className =
+              rowClass +
+              (fromTask ? ' row-from-task' : ' row-manual-delivery') +
+              (dateStr === todayStr ? ' today' : '');
             if (fromTask) tr.dataset.taskId = String(entry._taskId);
+            else {
+              tr.dataset.deliveryId = String(entry.id);
+              tr.dataset.deliveryDate = (entry.date || '').slice(0, 10);
+              tr.title = '右クリックで日付変更・削除';
+            }
             if (idx === 0) tr.dataset.date = dateStr;
             const dateCell = idx === 0
               ? `<td class="td-date" rowspan="${dayEntries.length}">${m}/${d}</td>
@@ -1306,11 +1668,10 @@
               : '';
             const noteCell = fromTask
               ? taskShipmentNoteTriggerHtml(entry)
-              : (entry.note || '');
+              : taskInlineTextInput('note', entry);
             const opCell = fromTask
               ? (idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
-              : `<button type="button" class="op-btn edit" onclick="openModal(null, '${entry.id}')">編集</button>
-                 ${idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : ''}`;
+              : (idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : '');
             if (fromTask) {
               tr.innerHTML = `
               ${dateCell}
@@ -1328,15 +1689,15 @@
             } else {
               tr.innerHTML = `
               ${dateCell}
-              <td class="td-type-cell">${typeCellInnerHtml(entry)}</td>
-              <td style="text-align:center;">${entry.time_slot || ''}</td>
-              <td class="td-col-status">${statusBadge(entry.status)}</td>
-              <td style="text-align:center;">${entry.project_number || ''}</td>
-              <td>${entry.machine_unit || ''}</td>
-              <td>${entry.product_name || ''}</td>
-              <td style="text-align:right;">${entry.quantity || ''}</td>
-              <td>${entry.sales_rep || ''}</td>
-              <td>${entry.mfg_rep || ''}</td>
+              <td class="td-type-cell"><div class="type-cell-row"><div class="type-cell-inner">${deliveryTypePickCell(entry)}</div></div></td>
+              <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
+              <td class="td-col-status">${taskStatusPickCell(entry)}</td>
+              <td style="text-align:center;">${taskInlineTextInput('project_number', entry)}</td>
+              <td>${taskInlineTextInput('machine_unit', entry)}</td>
+              <td>${taskInlineTextInput('product_name', entry)}</td>
+              <td style="text-align:right;">${taskInlineTextInput('quantity', entry, 'text-align:right;')}</td>
+              <td>${taskInlineTextInput('sales_rep', entry)}</td>
+              <td>${taskInlineTextInput('mfg_rep', entry)}</td>
               <td>${noteCell}</td>
               <td style="text-align:center;">${opCell}</td>`;
             }
@@ -1351,6 +1712,7 @@
 
     document.getElementById('loading').style.display = 'none';
     document.getElementById('delivery-table').style.display = '';
+    applyPendingScroll();
   }
 
   function dowColor(dow, isHol) {
@@ -1365,12 +1727,6 @@
     return `<span class="type-badge ${cls}">${type}</span>`;
   }
 
-  function statusBadge(status) {
-    if (!status) return '';
-    const cls = status === '確定' ? 'kakutei' : 'yotei';
-    return `<span class="status-badge ${cls}">${status}</span>`;
-  }
-
   function setFilter(filter) {
     currentFilter = filter;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
@@ -1379,38 +1735,12 @@
     renderCalendar();
   }
 
-  // ─── モーダル ──────────────────────────────────────────
-  function openModal(dateStr, entryId) {
+  // ─── モーダル（新規追加のみ）─────────────────────────────
+  function openModal(dateStr) {
     clearForm();
     const overlay = document.getElementById('modal-overlay');
-    const deleteBtn = document.getElementById('btn-delete-modal');
-
-    if (entryId) {
-      // 編集モード
-      const entry = deliveries.find(e => e.id === entryId);
-      if (!entry) return;
-      document.getElementById('modal-title').textContent = '入出荷エントリ 編集';
-      document.getElementById('edit-id').value = entryId;
-      document.getElementById('f-date').value           = entry.date ? entry.date.slice(0,10) : '';
-      document.getElementById('f-type').value           = entry.type || '';
-      document.getElementById('f-time-slot').value      = entry.time_slot || '';
-      document.getElementById('f-status').value         = entry.status || '';
-      document.getElementById('f-project-number').value = entry.project_number || '';
-      document.getElementById('f-machine-unit').value   = entry.machine_unit || '';
-      document.getElementById('f-product-name').value   = entry.product_name || '';
-      document.getElementById('f-quantity').value       = entry.quantity || '';
-      document.getElementById('f-sales-rep').value      = entry.sales_rep || '';
-      document.getElementById('f-mfg-rep').value        = entry.mfg_rep || '';
-      document.getElementById('f-note').value           = entry.note || '';
-      deleteBtn.style.display = 'inline-block';
-    } else {
-      // 追加モード
-      document.getElementById('modal-title').textContent = '入出荷エントリ 追加';
-      document.getElementById('edit-id').value = '';
-      if (dateStr) document.getElementById('f-date').value = dateStr;
-      deleteBtn.style.display = 'none';
-    }
-
+    document.getElementById('modal-title').textContent = '入出荷エントリ 追加';
+    if (dateStr) document.getElementById('f-date').value = dateStr;
     overlay.classList.add('show');
     document.getElementById('f-date').focus();
   }
@@ -1448,12 +1778,10 @@
     const startIn = document.getElementById('task-date-edit-start').value;
     const endIn = document.getElementById('task-date-edit-end').value;
     if (!startIn || !endIn) {
-      showToast('開始日・終了日を入力してください', 'error');
       return;
     }
     const span = orderedSpan(startIn, endIn);
     if (!span) {
-      showToast('日付が不正です', 'error');
       return;
     }
     const taskId = Number(rawId);
@@ -1467,16 +1795,15 @@
       .select('id');
 
     if (error) {
-      showToast('工程表の更新に失敗しました: ' + error.message, 'error');
       return;
     }
     if (!data || !data.length) {
-      showToast('対象タスクが見つかりません（工場出荷タスクのみ変更できます）', 'error');
       return;
     }
 
     showToast('工程表の出荷期間を更新しました', 'success');
     closeTaskShipmentDateModal();
+    requestScrollAfterNextRender({ taskId: taskId });
     await loadAndRender();
   }
 
@@ -1486,7 +1813,6 @@
      'f-mfg-rep','f-note'].forEach(id => {
       document.getElementById(id).value = '';
     });
-    document.getElementById('edit-id').value = '';
     document.getElementById('autofill-hint').style.display = 'none';
   }
 
@@ -1494,8 +1820,8 @@
   async function saveEntry() {
     const date = document.getElementById('f-date').value;
     const type = document.getElementById('f-type').value;
-    if (!date) { showToast('日付を入力してください', 'error'); return; }
-    if (!type) { showToast('入荷/出荷を選択してください', 'error'); return; }
+    if (!date) return;
+    if (!type) return;
 
     const payload = {
       date:           date,
@@ -1512,14 +1838,7 @@
       updated_at:     new Date().toISOString(),
     };
 
-    const editId = document.getElementById('edit-id').value;
-    let error;
-
-    if (editId) {
-      ({ error } = await sb.from('deliveries').update(payload).eq('id', editId));
-    } else {
-      ({ error } = await sb.from('deliveries').insert(payload));
-    }
+    const { data: inserted, error } = await sb.from('deliveries').insert(payload).select('id').maybeSingle();
 
     if (error) {
       showToast('保存に失敗しました: ' + error.message, 'error');
@@ -1528,20 +1847,9 @@
 
     showToast('保存しました', 'success');
     closeModal();
-    await loadAndRender();
-  }
-
-  // ─── 削除 ──────────────────────────────────────────────
-  async function deleteEntry() {
-    const editId = document.getElementById('edit-id').value;
-    if (!editId) return;
-    if (!confirm('このエントリを削除しますか？')) return;
-
-    const { error } = await sb.from('deliveries').delete().eq('id', editId);
-    if (error) { showToast('削除に失敗しました', 'error'); return; }
-
-    showToast('削除しました');
-    closeModal();
+    if (inserted && inserted.id != null) {
+      requestScrollAfterNextRender({ deliveryId: inserted.id });
+    }
     await loadAndRender();
   }
 
@@ -1596,12 +1904,76 @@
     window.scrollTo({ top, behavior: 'instant' });
   }
 
-  // ─── トースト通知 ──────────────────────────────────────
+  let saveBannerDismissTimer = null;
+  let saveBannerFallbackTimer = null;
+  let saveBannerAbort = null;
+  let saveBannerSession = 0;
+
+  function hideSaveBannerCompletely(banner) {
+    banner.classList.remove('is-open', 'is-closing', 'is-success', 'is-error');
+    banner.textContent = '';
+    banner.setAttribute('aria-hidden', 'true');
+  }
+
+  // ─── 通知バナー（ページヘッダーと列ヘッダーの間）─────────────────
   function showToast(msg, type = '') {
-    const el = document.getElementById('toast');
-    el.textContent = msg;
-    el.className = 'toast show ' + type;
-    setTimeout(() => { el.className = 'toast'; }, 2500);
+    const banner = document.getElementById('save-banner');
+    if (!banner) return;
+    if (saveBannerAbort) {
+      saveBannerAbort.abort();
+      saveBannerAbort = null;
+    }
+    if (saveBannerDismissTimer) {
+      clearTimeout(saveBannerDismissTimer);
+      saveBannerDismissTimer = null;
+    }
+    if (saveBannerFallbackTimer) {
+      clearTimeout(saveBannerFallbackTimer);
+      saveBannerFallbackTimer = null;
+    }
+
+    const session = ++saveBannerSession;
+
+    saveBannerAbort = new AbortController();
+    const sig = saveBannerAbort.signal;
+
+    banner.classList.remove('is-closing', 'is-open');
+    banner.textContent = msg;
+    banner.className = 'save-banner ' + (type === 'error' ? 'is-error' : 'is-success');
+    banner.removeAttribute('aria-hidden');
+    void banner.offsetWidth;
+    requestAnimationFrame(() => {
+      banner.classList.add('is-open');
+    });
+
+    saveBannerDismissTimer = setTimeout(() => {
+      saveBannerDismissTimer = null;
+      if (session !== saveBannerSession) return;
+      banner.classList.remove('is-open');
+      banner.classList.add('is-closing');
+      let finished = false;
+      const done = () => {
+        if (session !== saveBannerSession || finished) return;
+        finished = true;
+        hideSaveBannerCompletely(banner);
+        if (saveBannerFallbackTimer) {
+          clearTimeout(saveBannerFallbackTimer);
+          saveBannerFallbackTimer = null;
+        }
+      };
+      const onTe = ev => {
+        if (ev.target !== banner) return;
+        if (ev.propertyName !== 'transform' && ev.propertyName !== 'opacity') return;
+        done();
+      };
+      try {
+        banner.addEventListener('transitionend', onTe, { signal: sig, once: true });
+      } catch {
+        done();
+        return;
+      }
+      saveBannerFallbackTimer = setTimeout(done, 500);
+    }, 4000);
   }
 
   // ─── オーバーレイクリックで閉じる ─────────────────────
@@ -1611,6 +1983,24 @@
 
   document.getElementById('task-date-modal-overlay').addEventListener('click', e => {
     if (e.target === e.currentTarget) closeTaskShipmentDateModal();
+  });
+
+  document.getElementById('delivery-move-date-overlay').addEventListener('click', e => {
+    if (e.target === e.currentTarget) closeDeliveryMoveDateModal();
+  });
+  document.getElementById('delivery-ctx-change-date').addEventListener('click', onDeliveryCtxChangeDate);
+  document.getElementById('delivery-ctx-delete').addEventListener('click', onDeliveryCtxDelete);
+  document.addEventListener('mousedown', e => {
+    const menu = document.getElementById('delivery-ctx-menu');
+    if (!menu || menu.style.display === 'none') return;
+    if (menu.contains(e.target)) return;
+    hideDeliveryContextMenu();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    hideDeliveryContextMenu();
+    const dm = document.getElementById('delivery-move-date-overlay');
+    if (dm && dm.classList.contains('show')) closeDeliveryMoveDateModal();
   });
 
   // ─── 起動 ──────────────────────────────────────────────
