@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS task_shipment_overlays (
   mfg_rep        TEXT,
   assembly_rep   TEXT,
   note           TEXT,
+  product_name   TEXT,
 
   created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),

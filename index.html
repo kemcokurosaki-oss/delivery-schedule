@@ -976,7 +976,7 @@
   const DOW_NAMES = ['日', '月', '火', '水', '木', '金', '土'];
 
   const TASK_OVERLAY_KEYS = [
-    'time_slot', 'status', 'quantity', 'mfg_rep',
+    'time_slot', 'status', 'quantity', 'mfg_rep', 'product_name',
   ];
 
   /** 工程表ベース行に task_shipment_overlays を上書きマージ（空の overlay 値は無視） */
@@ -1201,12 +1201,13 @@
       status: get('status'),
       quantity: get('quantity'),
       mfg_rep: get('mfg_rep'),
+      product_name: get('product_name'),
     };
   }
 
   /** 補完が実質空なら DB 行を削除する（既定の「予定」のみ等） */
   function shouldDeleteOverlayRow(data) {
-    const textKeys = ['time_slot', 'quantity', 'mfg_rep'];
+    const textKeys = ['time_slot', 'quantity', 'mfg_rep', 'product_name'];
     if (textKeys.some(k => data[k])) return false;
     if (data.status === '確定') return false;
     return true;
@@ -1246,6 +1247,7 @@
         quantity: gathered.quantity,
         sales_rep: gathered.sales_rep,
         mfg_rep: gathered.mfg_rep,
+        product_name: gathered.product_name,
         note: existing && existing.note != null && String(existing.note).trim() !== '' ? existing.note : null,
       };
       const { data: savedRows, error } = await sb
@@ -1362,6 +1364,11 @@
     const tbody = document.getElementById('table-body');
     if (!tbody || tbody.dataset.overlayBound) return;
     tbody.dataset.overlayBound = '1';
+    tbody.addEventListener('mousedown', e => {
+      const inp = e.target.closest('input.task-inline-input.ghost');
+      if (!inp || !tbody.contains(inp)) return;
+      if (inp.readOnly) e.preventDefault();
+    }, true);
     tbody.addEventListener('click', e => {
       const dateTrig = e.target.closest('.task-shipment-date-trigger');
       if (dateTrig) {
@@ -1680,7 +1687,7 @@
 
     // start_date 未使用のDBでは列追加が必要。終了日が表示範囲より後のタスクも拾い、期間と表示範囲の重なりで絞る
     const { data: taskData, error: taskErr } = await sb.from('tasks')
-      .select('id, project_number, machine, major_item, text, start_date, end_date')
+      .select('id, project_number, machine, text, start_date, end_date')
       .eq('text', '工場出荷')
       .gte('end_date', startDate);
 
@@ -1705,7 +1712,6 @@
             _spanEnd: span.end,
             project_number: t.project_number,
             machine_unit: t.machine,
-            product_name: t.major_item,
             sales_rep: salesPersonMap[t.project_number] || null,
           };
         })
@@ -1833,7 +1839,7 @@
               <td class="td-col-status">${taskStatusPickCell(entry)}</td>
               <td style="text-align:center;">${entry.project_number || ''}</td>
               <td>${entry.machine_unit || ''}</td>
-              <td></td>
+              <td>${taskInlineTextInput('product_name', entry)}</td>
               <td style="text-align:right;">${taskInlineTextInput('quantity', entry, 'text-align:right;')}</td>
               <td>${taskSalesRepCell(entry)}</td>
               <td>${taskInlineTextInput('mfg_rep', entry)}</td>
