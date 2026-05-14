@@ -204,13 +204,11 @@ function buildDayEntries(dateStr, deliveries, taskShipments) {
 }
 
 function formatEntryLine(entry) {
-  const tag = entry._fromTask ? '工程表' : '手動';
   const span =
     entry._fromTask && entry._spanStart && entry._spanEnd && entry._spanStart !== entry._spanEnd
       ? `（出荷期間 ${entry._spanStart}～${entry._spanEnd}）`
       : '';
   const parts = [
-    `[${tag}]`,
     entry.type || '',
     entry.time_slot ? `時間帯:${entry.time_slot}` : null,
     entry.status ? `状態:${entry.status}` : null,
@@ -318,13 +316,11 @@ async function main() {
   const taskShipments = expandTaskShipmentsForView(metas, overlaysByTaskId, winStart, winEnd);
 
   const lines = [];
-  lines.push(`対象期間（東京）`);
-  lines.push(`  今週: ${week1Mon}（月）～ ${week1Sun}（日）`);
-  lines.push(`  翌週: ${week2Mon}（月）～ ${week2Sun}（日）`);
-  lines.push('');
-
   let totalEntries = 0;
-  for (const label of ['今週', '翌週']) {
+  const weekLabels = ['今週', '翌週'];
+  for (let wi = 0; wi < weekLabels.length; wi++) {
+    const label = weekLabels[wi];
+    if (wi === 1) lines.push('');
     const wStart = label === '今週' ? week1Mon : week2Mon;
     const wEnd = label === '今週' ? week1Sun : week2Sun;
     lines.push(`━━ ${label}（${weekLabelYmd(wStart)} ～ ${weekLabelYmd(wEnd)}） ━━`);
@@ -349,9 +345,7 @@ async function main() {
     return;
   }
 
-  const body =
-    `${lines.join('\n')}\n※このメールは自動送信です。\n` +
-    `※内容は入出荷予定一覧（deliveries・工程表「工場出荷」・オーバーレイ）と同一ルールで集計しています。\n`;
+  const body = `${lines.join('\n')}\n※このメールは自動送信です。\n`;
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
