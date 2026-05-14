@@ -185,6 +185,11 @@
       min-width: 30px;
     }
 
+    tbody td.td-col-machine-unit,
+    tbody td.td-col-sales-rep {
+      text-align: center;
+    }
+
     /* 行の色分け */
     tr.sunday  { background: #fce4ec; }
     tr.saturday { background: #e3f2fd; }
@@ -508,6 +513,7 @@
       color: #333;
       cursor: default;
       user-select: text;
+      text-align: center;
     }
 
     /* 今日の行：一覧セルの文字・操作系を少し大きく（.row-from-task より後・詳細度高く） */
@@ -583,7 +589,7 @@
       border-bottom: 2px solid #1976D2;
       color: #1976D2;
     }
-    /* 出荷日変更モーダル：工番を強調（フォントはメイリオ統一） */
+    /* 出荷日変更モーダル：工事番号を強調（フォントはメイリオ統一） */
     .task-date-modal-kouban {
       margin: 0 0 14px;
       padding: 14px 16px;
@@ -655,6 +661,11 @@
       font-size: 10px;
       color: #43a047;
       margin-top: 2px;
+      display: block;
+    }
+    .autofill-hint-mark {
+      line-height: 1;
+      min-height: 12px;
     }
     .modal-actions {
       display: flex;
@@ -748,7 +759,7 @@
         <th class="th-col-type">入荷/出荷</th>
         <th style="width:65px;">時間帯</th>
         <th class="th-col-status">予定状態</th>
-        <th style="width:58px;">工番</th>
+        <th style="width:74px;">工事番号</th>
         <th style="width:78px;">機械ユニット</th>
         <th style="width:160px;">製品</th>
         <th style="width:45px;">数量</th>
@@ -765,7 +776,7 @@
 <!-- 追加モーダル（手動行の編集は一覧のインライン編集） -->
 <div class="modal-overlay" id="modal-overlay">
   <div class="modal">
-    <h2 id="modal-title">入出荷エントリ 追加</h2>
+    <h2 id="modal-title">入荷/出荷タスク追加</h2>
 
     <div class="form-row">
       <div class="form-group" style="flex:2;">
@@ -804,13 +815,14 @@
 
     <div class="form-row">
       <div class="form-group" style="flex:1.2;">
-        <label>工番</label>
+        <label>工事番号</label>
         <input type="text" id="f-project-number" placeholder="例: 8810" oninput="onProjectNumberInput()">
-        <span class="autofill-hint" id="autofill-hint" style="display:none;">✓ 工程表から自動補完しました</span>
+        <span class="autofill-hint" id="autofill-hint" style="display:none;">✓自動補完しました</span>
       </div>
       <div class="form-group" style="flex:1.5;">
         <label>機械ユニット</label>
         <input type="text" id="f-machine-unit" placeholder="例: PCLU">
+        <span class="autofill-hint autofill-hint-mark" id="autofill-hint-machine" style="display:none;" aria-hidden="true">✓</span>
       </div>
     </div>
 
@@ -827,6 +839,7 @@
       <div class="form-group">
         <label>営業担当</label>
         <input type="text" id="f-sales-rep">
+        <span class="autofill-hint autofill-hint-mark" id="autofill-hint-sales" style="display:none;" aria-hidden="true">✓</span>
       </div>
     </div>
 
@@ -854,7 +867,7 @@
   <div class="modal" style="width:420px;">
     <h2>出荷日を変更</h2>
     <div class="task-date-modal-kouban">
-      <span class="task-date-modal-kouban-label">対象工番</span>
+      <span class="task-date-modal-kouban-label">対象工事番号</span>
       <span id="task-date-edit-pn" class="task-date-modal-kouban-value">—</span>
     </div>
     <p class="task-date-modal-help">
@@ -1741,7 +1754,7 @@
     bindManualDeliveryContextMenu();
   }
 
-  /** 同日・同工番の手動出荷があれば工程表タスク行は二重表示しない */
+  /** 同日・同工事番号の手動出荷があれば工程表タスク行は二重表示しない */
   function taskShipmentVisibleForDay(taskRow, dayDeliveriesAllTypes) {
     const pn = (taskRow.project_number || '').trim();
     if (!pn) return true;
@@ -1838,10 +1851,10 @@
               <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
               <td class="td-col-status">${taskStatusPickCell(entry)}</td>
               <td style="text-align:center;">${entry.project_number || ''}</td>
-              <td>${entry.machine_unit || ''}</td>
+              <td class="td-col-machine-unit">${entry.machine_unit || ''}</td>
               <td>${taskInlineTextInput('product_name', entry)}</td>
               <td style="text-align:right;">${taskInlineTextInput('quantity', entry, 'text-align:right;')}</td>
-              <td>${taskSalesRepCell(entry)}</td>
+              <td class="td-col-sales-rep">${taskSalesRepCell(entry)}</td>
               <td>${taskInlineTextInput('mfg_rep', entry)}</td>
               <td>${noteCell}</td>
               <td style="text-align:center;">${opCell}</td>`;
@@ -1852,10 +1865,10 @@
               <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
               <td class="td-col-status">${taskStatusPickCell(entry)}</td>
               <td style="text-align:center;">${taskInlineTextInput('project_number', entry)}</td>
-              <td>${taskInlineTextInput('machine_unit', entry)}</td>
+              <td class="td-col-machine-unit">${taskInlineTextInput('machine_unit', entry, 'text-align:center;')}</td>
               <td>${taskInlineTextInput('product_name', entry)}</td>
               <td style="text-align:right;">${taskInlineTextInput('quantity', entry, 'text-align:right;')}</td>
-              <td>${taskInlineTextInput('sales_rep', entry)}</td>
+              <td class="td-col-sales-rep">${taskInlineTextInput('sales_rep', entry, 'text-align:center;')}</td>
               <td>${taskInlineTextInput('mfg_rep', entry)}</td>
               <td>${noteCell}</td>
               <td style="text-align:center;">${opCell}</td>`;
@@ -1927,7 +1940,7 @@
   function openModal(dateStr) {
     clearForm();
     const overlay = document.getElementById('modal-overlay');
-    document.getElementById('modal-title').textContent = '入出荷エントリ 追加';
+    document.getElementById('modal-title').textContent = '入荷/出荷タスク追加';
     if (dateStr) document.getElementById('f-date').value = dateStr;
     overlay.classList.add('show');
     document.getElementById('f-date').focus();
@@ -2001,7 +2014,14 @@
      'f-mfg-rep','f-note'].forEach(id => {
       document.getElementById(id).value = '';
     });
-    document.getElementById('autofill-hint').style.display = 'none';
+    hideModalAutofillHints();
+  }
+
+  function hideModalAutofillHints() {
+    ['autofill-hint', 'autofill-hint-machine', 'autofill-hint-sales'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
   }
 
   // ─── 保存 ──────────────────────────────────────────────
@@ -2041,43 +2061,51 @@
     await loadAndRender();
   }
 
-  // ─── 工番から自動補完 ──────────────────────────────────
+  // ─── 工事番号から自動補完（機械ユニット・営業担当のみ）─────────────────
   function onProjectNumberInput() {
     clearTimeout(autoFillTimer);
     const pn = document.getElementById('f-project-number').value.trim();
-    if (!pn) return;
+    if (!pn) {
+      hideModalAutofillHints();
+      return;
+    }
     autoFillTimer = setTimeout(() => autoFillFromTasks(pn), 600);
   }
 
   async function autoFillFromTasks(projectNumber) {
+    hideModalAutofillHints();
+
     const { data } = await sb.from('tasks')
-      .select('machine, major_item, text, start_date, end_date')
+      .select('machine')
       .eq('project_number', projectNumber)
       .limit(50);
 
-    if (!data || data.length === 0) return;
+    if (document.getElementById('f-project-number').value.trim() !== projectNumber) return;
 
-    // 機械ユニット・製品名・営業担当を補完（未入力の場合のみ）
-    const sample = data.find(t => t.machine) || data[0];
     const machineInput  = document.getElementById('f-machine-unit');
-    const productInput  = document.getElementById('f-product-name');
     const salesRepInput = document.getElementById('f-sales-rep');
+    let filledMachine = false;
+    let filledSales = false;
 
-    if (!machineInput.value && sample.machine)                         machineInput.value  = sample.machine;
-    if (!productInput.value  && sample.major_item)                     productInput.value  = sample.major_item;
-    if (!salesRepInput.value && salesPersonMap[projectNumber])         salesRepInput.value = salesPersonMap[projectNumber];
-
-    // 出荷タイプの場合: 「工場出荷」タスクの end_date を日付として提案
-    const type = document.getElementById('f-type').value;
-    const dateInput = document.getElementById('f-date');
-    if (type === '出荷' && !dateInput.value) {
-      const shukkaTask = data.find(t => t.text === '工場出荷' && t.end_date);
-      if (shukkaTask) {
-        dateInput.value = shukkaTask.end_date.slice(0, 10);
+    if (data && data.length > 0) {
+      const sample = data.find(t => t.machine) || data[0];
+      if (!machineInput.value && sample.machine) {
+        machineInput.value = sample.machine;
+        filledMachine = true;
       }
     }
+    if (!salesRepInput.value && salesPersonMap[projectNumber]) {
+      salesRepInput.value = salesPersonMap[projectNumber];
+      filledSales = true;
+    }
 
-    document.getElementById('autofill-hint').style.display = 'inline';
+    if (document.getElementById('f-project-number').value.trim() !== projectNumber) return;
+
+    if (filledMachine || filledSales) {
+      document.getElementById('autofill-hint').style.display = 'block';
+      if (filledMachine) document.getElementById('autofill-hint-machine').style.display = 'block';
+      if (filledSales) document.getElementById('autofill-hint-sales').style.display = 'block';
+    }
   }
 
   // ─── 今日の日付へスクロール ────────────────────────────
