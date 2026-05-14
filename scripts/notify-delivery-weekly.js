@@ -323,7 +323,7 @@ async function main() {
     if (wi === 1) lines.push('');
     const wStart = label === '今週' ? week1Mon : week2Mon;
     const wEnd = label === '今週' ? week1Sun : week2Sun;
-    lines.push(`━━ ${label}（${weekLabelYmd(wStart)} ～ ${weekLabelYmd(wEnd)}） ━━`);
+    lines.push(`━━ ${label} ━━`);
     let any = false;
     for (const ymd of enumerateYmdInclusive(wStart, wEnd)) {
       const entries = buildDayEntries(ymd, deliveries || [], taskShipments);
@@ -345,7 +345,7 @@ async function main() {
     return;
   }
 
-  const body = `${lines.join('\n')}\n※このメールは自動送信です。\n`;
+  const body = `${lines.join('\n')}\n\n※このメールは自動送信です。\n`;
 
   const transporter = nodemailer.createTransport({
     service: 'gmail',
