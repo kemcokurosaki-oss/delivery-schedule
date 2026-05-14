@@ -190,9 +190,8 @@
     tr.saturday { background: #e3f2fd; }
     tr.holiday  { background: #fce4ec; }
     tr.weekday  { background: white; }
-    tr.sunday:hover, tr.saturday:hover, tr.holiday:hover, tr.weekday:hover {
-      filter: brightness(0.96);
-    }
+    /* 入出荷なしの平日のみグレー（土日祝の行色はそのまま優先） */
+    tr.empty-day.weekday { background: #eeeeee; }
 
     /* 入荷/出荷インジケーター */
     .type-badge {
@@ -311,62 +310,62 @@
     }
     .op-btn.add-day:hover { background: #e8f5e9; }
 
+    /* 工程表タスク行・手動登録行：背景は白（.sunday/.saturday 行色より詳細度高く上書き） */
+    tr.row-from-task,
+    tr.row-manual-delivery,
+    tr.row-from-task.sunday,
+    tr.row-from-task.saturday,
+    tr.row-from-task.holiday,
+    tr.row-manual-delivery.sunday,
+    tr.row-manual-delivery.saturday,
+    tr.row-manual-delivery.holiday {
+      background: #fff;
+    }
     /* 工程表タスク行・手動登録行（セル内インライン編集）— 入荷/出荷列は折り返さない */
     tr.row-from-task td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
     tr.row-manual-delivery td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
-      background: #fafafa;
+      background: #fff;
       white-space: normal;
       vertical-align: middle;
     }
     tr.row-from-task td.td-type-cell,
     tr.row-manual-delivery td.td-type-cell {
-      background: #fafafa;
+      background: #fff;
     }
     tr.row-from-task td.td-col-status,
     tr.row-manual-delivery td.td-col-status {
-      background: #fafafa;
+      background: #fff;
       white-space: nowrap;
     }
-    /* 土日祝：上の #fafafa より :not の数で詳細度を上げ、セル・時刻枠まで休日色で統一 */
-    tr.row-from-task.sunday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
-    tr.row-from-task.holiday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
-    tr.row-manual-delivery.sunday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
-    tr.row-manual-delivery.holiday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
-      background: #fce4ec;
+    /* 行ホバー：平日空きと同じクールグレー #d5dae3 に統一 */
+    tr.empty-day:hover {
+      background: #d5dae3;
     }
-    tr.row-from-task.saturday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
-    tr.row-manual-delivery.saturday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
-      background: #e3f2fd;
+    /* タスク行：通常の td ルールより詳細度を上げないとホバーが列ごとに負ける */
+    tr.row-from-task:hover,
+    tr.row-manual-delivery:hover {
+      background: #d5dae3;
     }
-    tr.row-from-task.sunday td.td-type-cell,
-    tr.row-from-task.holiday td.td-type-cell,
-    tr.row-manual-delivery.sunday td.td-type-cell,
-    tr.row-manual-delivery.holiday td.td-type-cell {
-      background: #fce4ec;
+    tr.row-from-task:hover td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+    tr.row-manual-delivery:hover td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+      background: #d5dae3;
     }
-    tr.row-from-task.saturday td.td-type-cell,
-    tr.row-manual-delivery.saturday td.td-type-cell {
-      background: #e3f2fd;
+    tr.row-from-task:hover td.td-type-cell,
+    tr.row-manual-delivery:hover td.td-type-cell {
+      background: #d5dae3;
     }
-    tr.row-from-task.sunday td.td-col-status,
-    tr.row-from-task.holiday td.td-col-status,
-    tr.row-manual-delivery.sunday td.td-col-status,
-    tr.row-manual-delivery.holiday td.td-col-status {
-      background: #fce4ec;
+    tr.row-from-task:hover td.td-col-status,
+    tr.row-manual-delivery:hover td.td-col-status {
+      background: #d5dae3;
     }
-    tr.row-from-task.saturday td.td-col-status,
-    tr.row-manual-delivery.saturday td.td-col-status {
-      background: #e3f2fd;
+    tr.row-from-task:hover .task-pick-control,
+    tr.row-manual-delivery:hover .task-pick-control {
+      background: #d5dae3;
     }
-    tr.row-from-task.sunday .task-pick-control,
-    tr.row-from-task.holiday .task-pick-control,
-    tr.row-manual-delivery.sunday .task-pick-control,
-    tr.row-manual-delivery.holiday .task-pick-control {
-      background: #fce4ec;
-    }
-    tr.row-from-task.saturday .task-pick-control,
-    tr.row-manual-delivery.saturday .task-pick-control {
-      background: #e3f2fd;
+    /* rowspan の日付・曜日は先頭行の td のみ — 同日の別行ホバー時は JS で付与 */
+    .td-date.day-date-dow-hover,
+    .td-dow.day-date-dow-hover {
+      background: #d5dae3 !important;
     }
     tr.row-from-task .task-inline-input.ghost,
     tr.row-manual-delivery .task-inline-input.ghost {
@@ -1334,6 +1333,45 @@
     });
   }
 
+  /** rowspan の日付・曜日は先頭行のみ。同日の2行目以降をホバーしても日付列をハイライトする */
+  function bindDayHoverDateHighlight() {
+    const tbody = document.getElementById('table-body');
+    if (!tbody || tbody.dataset.dayHoverBound) return;
+    tbody.dataset.dayHoverBound = '1';
+
+    let activeDateStr = null;
+
+    function clearDayHoverDateHighlight() {
+      tbody.querySelectorAll('.td-date.day-date-dow-hover, .td-dow.day-date-dow-hover').forEach(td => {
+        td.classList.remove('day-date-dow-hover');
+      });
+      activeDateStr = null;
+    }
+
+    function applyDayHoverDateHighlight(dateStr) {
+      if (activeDateStr === dateStr) return;
+      clearDayHoverDateHighlight();
+      activeDateStr = dateStr;
+      const esc = typeof CSS !== 'undefined' && CSS.escape ? CSS.escape(dateStr) : dateStr;
+      const rows = tbody.querySelectorAll(`tr[data-date="${esc}"]`);
+      if (!rows.length) return;
+      const first = rows[0];
+      first.querySelectorAll('.td-date, .td-dow').forEach(td => {
+        td.classList.add('day-date-dow-hover');
+      });
+    }
+
+    tbody.addEventListener('mouseover', e => {
+      const tr = e.target.closest('tr');
+      if (!tr || !tbody.contains(tr)) return;
+      if (tr.dataset.date) applyDayHoverDateHighlight(tr.dataset.date);
+      else clearDayHoverDateHighlight();
+    });
+    tbody.addEventListener('mouseleave', () => {
+      clearDayHoverDateHighlight();
+    });
+  }
+
   function hideDeliveryContextMenu() {
     const menu = document.getElementById('delivery-ctx-menu');
     if (!menu) return;
@@ -1579,6 +1617,7 @@
 
     renderCalendar();
     bindTableOverlayListeners();
+    bindDayHoverDateHighlight();
     bindManualDeliveryContextMenu();
   }
 
@@ -1661,7 +1700,7 @@
               tr.dataset.deliveryDate = (entry.date || '').slice(0, 10);
               tr.title = '右クリックで日付変更・削除';
             }
-            if (idx === 0) tr.dataset.date = dateStr;
+            tr.dataset.date = dateStr;
             const dateCell = idx === 0
               ? `<td class="td-date" rowspan="${dayEntries.length}">${m}/${d}</td>
                  <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
