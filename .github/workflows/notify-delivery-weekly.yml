@@ -1,0 +1,39 @@
+name: 入出荷予定週次通知
+# 必要な Repository secrets:
+#   SUPABASE_URL, SUPABASE_SECRET_KEY（service_role 推奨）, GMAIL_USER, GMAIL_APP_PASSWORD,
+#   DELIVERY_NOTIFY_TO（カンマ区切り。例: a@x.com,b@x.com）
+
+on:
+  schedule:
+    # 毎週月曜 7:00 JST（UTC 日曜 22:00）
+    - cron: '0 22 * * 0'
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'テスト（GMAIL_USER 宛のみ送信）'
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: パッケージインストール
+        run: npm install
+      - name: 週次入出荷予定をメール送信
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          DELIVERY_NOTIFY_TO: ${{ secrets.DELIVERY_NOTIFY_TO }}
+          TEST_MODE: ${{ github.event.inputs.test_mode || 'false' }}
+        run: node scripts/notify-delivery-weekly.js

@@ -1,0 +1,8 @@
+{
+  "name": "delivery-schedule-notify",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "nodemailer": "^6.9.0"
+  }
+}
