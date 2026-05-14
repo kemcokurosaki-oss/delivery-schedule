@@ -202,7 +202,7 @@
       font-weight: 700;
       white-space: nowrap;
     }
-    .type-badge.nyuuka  { background: #e3f2fd; color: #1976D2; border: 1px solid #90caf9; }
+    .type-badge.nyuuka  { background: #fff3e0; color: #e65100; border: 1px solid #ffb74d; }
     .type-badge.shukka  { background: #e8f5e9; color: #2E7D32; border: 1px solid #a5d6a7; }
     /* 入荷/出荷：列幅に合わせつつ、内容塊をセル中央に */
     thead th.th-col-type,
@@ -258,8 +258,19 @@
       font-weight: 700;
       white-space: nowrap;
     }
-    .status-badge.yotei   { background: #e3f2fd; color: #1976D2; border: 1px solid #90caf9; }
-    .status-badge.kakutei { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    .status-badge.yotei {
+      background: #f5f5f5;
+      color: #757575;
+      border: 1px solid #e0e0e0;
+      font-weight: 600;
+    }
+    .status-badge.kakutei {
+      background: #c62828;
+      color: #fff;
+      border: 1px solid #b71c1c;
+      font-weight: 800;
+      box-shadow: 0 1px 3px rgba(183, 28, 28, 0.35);
+    }
 
     /* 予定状態列：入荷/出荷列（.th-col-type / .td-type-cell）と同じ列幅・余白 */
     thead th.th-col-status,
