@@ -1,6 +1,7 @@
 /**
- * 入出荷予定一覧（index.html）と同じ集合・同じ二重排除ルールで
+ * 入出荷予定一覧（index.html）と同じ二重排除ルールで
  * 「今週・翌週」（月曜〜日曜×2、Asia/Tokyo）の行を集め、Gmail で通知する。
+ * 工程表で完了済みの工場出荷タスクは通知に含めない（一覧画面ではグレー表示のまま）。
  *
  * Secrets: SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD
  *          DELIVERY_NOTIFY_TO（任意・フォールバック。本番宛先は delivery_notify_recipients テーブル優先）
@@ -169,7 +170,13 @@ function buildTaskShipmentDisplayRow(meta, displayYmd, overlay) {
     mfg_rep: null,
     note: null,
   };
-  return mergeTaskOverlayRow(row, overlay);
+  const merged = mergeTaskOverlayRow(row, overlay);
+  const done = !!meta._taskIsCompleted;
+  merged._taskIsCompleted = done;
+  if (done) {
+    merged.status = '完了';
+  }
+  return merged;
 }
 
 function expandTaskShipmentsForView(metas, overlaysByTaskId, viewStart, viewEnd) {
@@ -279,11 +286,12 @@ async function main() {
 
   const factoryShip = encodeURIComponent('工場出荷');
   const taskRows = await supabaseFetch(
-    `tasks?select=id,project_number,machine,text,start_date,end_date&text=eq.${factoryShip}&end_date=gte.${winStart}`
+    `tasks?select=id,project_number,machine,text,start_date,end_date,is_completed&text=eq.${factoryShip}&end_date=gte.${winStart}`
   );
 
   const metas = (taskRows || [])
     .map((t) => {
+      if (t.is_completed) return null;
       const endYmd = ymdFromTaskDate(t.end_date);
       if (!endYmd) return null;
       const startRaw = t.start_date != null ? ymdFromTaskDate(t.start_date) : null;
@@ -300,6 +308,7 @@ async function main() {
         machine_unit: t.machine,
         sales_rep: salesPersonMap[t.project_number] || null,
         product_name: undefined,
+        _taskIsCompleted: !!t.is_completed,
       };
     })
     .filter(Boolean);
@@ -337,7 +346,7 @@ async function main() {
       });
       lines.push('');
     }
-    if (!any) lines.push('  （この週に表示対象の予定はありません）\n');
+    if (!any) lines.push('  （入出荷の予定はありません）\n');
   }
 
   if (totalEntries === 0) {

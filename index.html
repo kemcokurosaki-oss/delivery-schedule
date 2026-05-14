@@ -293,6 +293,12 @@
       font-weight: 800;
       box-shadow: 0 1px 3px rgba(183, 28, 28, 0.35);
     }
+    .status-badge.kanryo {
+      background: #78909c;
+      color: #fff;
+      border: 1px solid #546e7a;
+      font-weight: 700;
+    }
 
     /* 予定状態列：入荷/出荷列（.th-col-type / .td-type-cell）と同じ列幅・余白 */
     thead th.th-col-status,
@@ -400,6 +406,7 @@
     tr.row-manual-delivery:hover .task-pick-control {
       background: #d5dae3;
     }
+
     /* rowspan の日付・曜日は先頭行の td のみ — 同日の別行ホバー時は JS で付与 */
     .td-date.day-date-dow-hover,
     .td-dow.day-date-dow-hover {
@@ -551,6 +558,113 @@
     }
     tr.today .type-cell-right {
       font-size: 11px;
+    }
+
+    /* 工程表完了行：入出荷なし行と同じ行色。input/button の UA 白を含め塗りを統一（後段ルールより後で確定） */
+    tr.row-from-task.row-task-completed.weekday {
+      --comp-bg: #eeeeee;
+      --comp-hover-bg: #d5dae3;
+    }
+    tr.row-from-task.row-task-completed.saturday {
+      --comp-bg: #e3f2fd;
+      --comp-hover-bg: #d5dae3;
+    }
+    tr.row-from-task.row-task-completed.sunday,
+    tr.row-from-task.row-task-completed.holiday {
+      --comp-bg: #fce4ec;
+      --comp-hover-bg: #d5dae3;
+    }
+    tr.row-from-task.row-task-completed,
+    tr.row-from-task.row-task-completed td,
+    tr.row-from-task.row-task-completed .type-cell-inner,
+    tr.row-from-task.row-task-completed .type-cell-row,
+    tr.row-from-task.row-task-completed .task-pick-wrap,
+    tr.row-from-task.row-task-completed .task-pick-display,
+    tr.row-from-task.row-task-completed .task-inline-input.ghost,
+    tr.row-from-task.row-task-completed .task-inline-input.ghost:disabled,
+    tr.row-from-task.row-task-completed button,
+    tr.row-from-task.row-task-completed select,
+    tr.row-from-task.row-task-completed .task-shipment-date-trigger,
+    tr.row-from-task.row-task-completed .task-time-readonly,
+    tr.row-from-task.row-task-completed .task-status-readonly {
+      background-color: var(--comp-bg) !important;
+      background-image: none !important;
+    }
+    tr.row-from-task.row-task-completed button,
+    tr.row-from-task.row-task-completed select {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    tr.row-from-task.row-task-completed td {
+      color: #bbb;
+    }
+    tr.row-from-task.row-task-completed .task-inline-input.ghost,
+    tr.row-from-task.row-task-completed .task-inline-input.ghost:disabled {
+      color: #bbb;
+      -webkit-text-fill-color: #bbb;
+      opacity: 1;
+    }
+    tr.row-from-task.row-task-completed:hover,
+    tr.row-from-task.row-task-completed:hover td,
+    tr.row-from-task.row-task-completed:hover .type-cell-inner,
+    tr.row-from-task.row-task-completed:hover .type-cell-row,
+    tr.row-from-task.row-task-completed:hover .task-pick-wrap,
+    tr.row-from-task.row-task-completed:hover .task-pick-display,
+    tr.row-from-task.row-task-completed:hover .task-inline-input.ghost,
+    tr.row-from-task.row-task-completed:hover .task-inline-input.ghost:disabled,
+    tr.row-from-task.row-task-completed:hover button,
+    tr.row-from-task.row-task-completed:hover select,
+    tr.row-from-task.row-task-completed:hover .task-shipment-date-trigger,
+    tr.row-from-task.row-task-completed:hover .task-time-readonly,
+    tr.row-from-task.row-task-completed:hover .task-status-readonly {
+      background-color: var(--comp-hover-bg) !important;
+    }
+    tr.row-from-task.row-task-completed .task-span-day-badge {
+      color: #999;
+    }
+    tr.row-from-task.row-task-completed .type-badge.shukka {
+      background-color: #d0d0d0 !important;
+      color: #666;
+      border-color: #bdbdbd;
+    }
+    tr.row-from-task.row-task-completed .status-badge.kanryo {
+      background-color: #b0b0b0 !important;
+      color: #fff;
+      border-color: #9e9e9e;
+      box-shadow: none;
+    }
+    tr.row-from-task.row-task-completed .task-shipment-date-trigger {
+      pointer-events: none;
+      color: #999;
+      cursor: default;
+    }
+    tr.row-from-task.row-task-completed .task-status-readonly .status-badge {
+      cursor: default;
+    }
+    tr.row-from-task.row-task-completed .task-time-readonly {
+      color: #999;
+    }
+    tr.row-from-task.row-task-completed .sales-rep-auto {
+      color: #bbb;
+    }
+    tr.row-from-task.row-task-completed .task-source-tag {
+      color: #888;
+    }
+    tr.row-from-task.row-task-completed .task-inline-input.ghost:focus {
+      background-color: var(--comp-bg) !important;
+      box-shadow: none;
+    }
+    tr.row-from-task.row-task-completed:hover .task-inline-input.ghost:focus {
+      background-color: var(--comp-hover-bg) !important;
+    }
+    tr.row-from-task.row-task-completed .task-shipment-date-trigger:hover {
+      background-color: var(--comp-bg) !important;
+    }
+    tr.row-from-task.row-task-completed:hover .task-shipment-date-trigger:hover {
+      background-color: var(--comp-hover-bg) !important;
+    }
+    tr.row-from-task.row-task-completed .task-shipment-date-trigger:focus-visible {
+      box-shadow: none;
     }
 
     /* ローディング */
@@ -1063,7 +1177,13 @@
       mfg_rep: null,
       note: null,
     };
-    return mergeTaskOverlayRow(row, overlay);
+    const merged = mergeTaskOverlayRow(row, overlay);
+    const done = !!meta._taskIsCompleted;
+    merged._taskIsCompleted = done;
+    if (done) {
+      merged.status = '完了';
+    }
+    return merged;
   }
 
   function expandTaskShipmentsForView(metas, viewStart, viewEnd) {
@@ -1133,6 +1253,11 @@
 
   /** 時間帯: 通常はテキスト表示、ダブルクリックでプルダウン */
   function taskTimeSlotPickCell(entry) {
+    if (entry._taskIsCompleted) {
+      const v = (entry.time_slot || '').trim();
+      const disp = v ? escapeAttr(v) : '—';
+      return `<span class="task-time-readonly" title="工程表で完了済みのため一覧からは変更できません">${disp}</span>`;
+    }
     const v = (entry.time_slot || '').trim();
     const opts = ['午前', '午後', '昼前後'].map(o =>
       `<option value="${o}"${v === o ? ' selected' : ''}>${o}</option>`
@@ -1148,6 +1273,11 @@
 
   /** 予定状態: 通常は色付きバッジ、ダブルクリックでプルダウン */
   function taskStatusPickCell(entry) {
+    if (entry._taskIsCompleted) {
+      return `<div class="task-pick-wrap task-status-readonly" data-pick-wrap="status" title="工程表の「工場出荷」タスク完了チェックと連動">
+        <span class="status-badge kanryo">完了</span>
+      </div>`;
+    }
     const isK = entry.status === '確定';
     const badge = isK
       ? '<span class="status-badge kakutei">確定</span>'
@@ -1194,7 +1324,11 @@
   function taskInlineTextInput(field, entry, extraStyle = '', extraClass = '') {
     const val = escapeAttr(entry[field] || '');
     const c = 'task-inline-input ghost' + (extraClass ? ' ' + extraClass : '');
-    return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}" readonly title="ダブルクリックで編集">`;
+    const ro = entry._taskIsCompleted ? ' readonly disabled' : ' readonly';
+    const title = entry._taskIsCompleted
+      ? '工程表で完了済みのため一覧からは変更できません'
+      : 'ダブルクリックで編集';
+    return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}"${ro} title="${escapeAttr(title)}">`;
   }
 
   /** 営業担当セル: 常に読み取り専用（DBから自動補完） */
@@ -1228,7 +1362,7 @@
 
   function schedulePersistTaskOverlay(tr) {
     const id = tr.dataset.taskId;
-    if (!id) return;
+    if (!id || tr.dataset.taskCompleted === '1') return;
     const prev = overlaySaveTimers.get(id);
     if (prev) clearTimeout(prev);
     overlaySaveTimers.set(id, setTimeout(() => {
@@ -1238,6 +1372,7 @@
   }
 
   async function persistTaskRowOverlay(tr) {
+    if (tr.dataset.taskCompleted === '1') return;
     const rawId = tr.dataset.taskId;
     const taskId = Number(rawId);
     if (!rawId || Number.isNaN(taskId)) return;
@@ -1380,16 +1515,22 @@
     tbody.addEventListener('mousedown', e => {
       const inp = e.target.closest('input.task-inline-input.ghost');
       if (!inp || !tbody.contains(inp)) return;
+      const trG = inp.closest('tr.row-from-task');
+      if (trG && trG.dataset.taskCompleted === '1') return;
       if (inp.readOnly) e.preventDefault();
     }, true);
     tbody.addEventListener('click', e => {
       const dateTrig = e.target.closest('.task-shipment-date-trigger');
       if (dateTrig) {
+        const tr = dateTrig.closest('tr.row-from-task');
+        if (tr && tr.dataset.taskCompleted === '1') return;
         const tid = dateTrig.dataset.taskId;
         if (tid) openTaskShipmentDateModal(Number(tid));
       }
     });
     tbody.addEventListener('dblclick', e => {
+      const trBlock = e.target.closest('tr.row-from-task');
+      if (trBlock && trBlock.dataset.taskCompleted === '1') return;
       const inp = e.target.closest('input.task-inline-input.ghost');
       if (inp && tbody.contains(inp)) {
         const tr = inp.closest('tr.row-from-task') || inp.closest('tr.row-manual-delivery');
@@ -1420,6 +1561,7 @@
       if (!t || !t.dataset || !t.dataset.overlay) return;
       const trTask = t.closest('tr.row-from-task');
       const trMan = t.closest('tr.row-manual-delivery');
+      if (trTask && trTask.dataset.taskCompleted === '1') return;
       if (trTask) schedulePersistTaskOverlay(trTask);
       else if (trMan) schedulePersistDelivery(trMan);
       if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
@@ -1433,6 +1575,7 @@
       const trMan = t.closest('tr.row-manual-delivery');
       const tr = trTask || trMan;
       if (!tr) return;
+      if (trTask && trTask.dataset.taskCompleted === '1') return;
       if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
         collapseTaskPickSelect(t);
         if (trTask) schedulePersistTaskOverlay(trTask);
@@ -1457,6 +1600,8 @@
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const trig = e.target.closest('.task-shipment-date-trigger');
       if (!trig || !tbody.contains(trig)) return;
+      const trDt = trig.closest('tr.row-from-task');
+      if (trDt && trDt.dataset.taskCompleted === '1') return;
       e.preventDefault();
       const tid = trig.dataset.taskId;
       if (tid) openTaskShipmentDateModal(Number(tid));
@@ -1700,7 +1845,7 @@
 
     // start_date 未使用のDBでは列追加が必要。終了日が表示範囲より後のタスクも拾い、期間と表示範囲の重なりで絞る
     const { data: taskData, error: taskErr } = await sb.from('tasks')
-      .select('id, project_number, machine, text, start_date, end_date')
+      .select('id, project_number, machine, text, start_date, end_date, is_completed')
       .eq('text', '工場出荷')
       .gte('end_date', startDate);
 
@@ -1726,6 +1871,7 @@
             project_number: t.project_number,
             machine_unit: t.machine,
             sales_rep: salesPersonMap[t.project_number] || null,
+            _taskIsCompleted: !!t.is_completed,
           };
         })
         .filter(Boolean);
@@ -1827,8 +1973,13 @@
               rowClass +
               (fromTask ? ' row-from-task' : ' row-manual-delivery') +
               (dateStr === todayStr ? ' today' : '');
-            if (fromTask) tr.dataset.taskId = String(entry._taskId);
-            else {
+            if (fromTask) {
+              tr.dataset.taskId = String(entry._taskId);
+              if (entry._taskIsCompleted) {
+                tr.classList.add('row-task-completed');
+                tr.dataset.taskCompleted = '1';
+              }
+            } else {
               tr.dataset.deliveryId = String(entry.id);
               tr.dataset.deliveryDate = (entry.date || '').slice(0, 10);
               tr.title = '右クリックで日付変更・削除';
@@ -1957,6 +2108,10 @@
     const idStr = String(taskId);
     const meta = taskShipmentBases.find(t => String(t._taskId) === idStr);
     if (!meta) return;
+    if (meta._taskIsCompleted) {
+      showToast('工程表で完了済みのため、ここから出荷期間は変更できません', 'error');
+      return;
+    }
     document.getElementById('task-date-edit-id').value = idStr;
     document.getElementById('task-date-edit-start').value = meta._spanStart;
     document.getElementById('task-date-edit-end').value = meta._spanEnd;
