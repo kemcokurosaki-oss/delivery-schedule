@@ -278,6 +278,35 @@
       background: #fafafa;
       white-space: nowrap;
     }
+    /* 土日祝のタスク行：上の #fafafa より :not の数で詳細度を上げ、セル・時刻枠まで休日色で統一 */
+    tr.row-from-task.sunday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+    tr.row-from-task.holiday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+      background: #fce4ec;
+    }
+    tr.row-from-task.saturday td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+      background: #e3f2fd;
+    }
+    tr.row-from-task.sunday td.td-type-cell,
+    tr.row-from-task.holiday td.td-type-cell {
+      background: #fce4ec;
+    }
+    tr.row-from-task.saturday td.td-type-cell {
+      background: #e3f2fd;
+    }
+    tr.row-from-task.sunday td.td-col-status,
+    tr.row-from-task.holiday td.td-col-status {
+      background: #fce4ec;
+    }
+    tr.row-from-task.saturday td.td-col-status {
+      background: #e3f2fd;
+    }
+    tr.row-from-task.sunday .task-pick-control,
+    tr.row-from-task.holiday .task-pick-control {
+      background: #fce4ec;
+    }
+    tr.row-from-task.saturday .task-pick-control {
+      background: #e3f2fd;
+    }
     tr.row-from-task .task-inline-input.ghost {
       width: 100%;
       max-width: 100%;
