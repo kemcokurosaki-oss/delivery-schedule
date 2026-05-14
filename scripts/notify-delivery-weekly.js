@@ -2,8 +2,8 @@
  * 入出荷予定一覧（index.html）と同じ集合・同じ二重排除ルールで
  * 「今週・翌週」（月曜〜日曜×2、Asia/Tokyo）の行を集め、Gmail で通知する。
  *
- * Secrets: SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD,
- *          DELIVERY_NOTIFY_TO（本番・カンマ区切り。テストモード時は未設定でも可）
+ * Secrets: SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD
+ *          DELIVERY_NOTIFY_TO（任意・フォールバック。本番宛先は delivery_notify_recipients テーブル優先）
  * テストモード（TEST_MODE=true）の宛先: TEST_RECIPIENT_EMAIL（コード内定数）
  */
 
@@ -16,7 +16,7 @@ const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
 const NOTIFY_TO_RAW = process.env.DELIVERY_NOTIFY_TO || '';
 const TEST_MODE = process.env.TEST_MODE === 'true';
 
-/** 手動テスト（TEST_MODE）時の宛先（本番は DELIVERY_NOTIFY_TO） */
+/** 手動テスト（TEST_MODE）時の宛先（本番は DB または DELIVERY_NOTIFY_TO） */
 const TEST_RECIPIENT_EMAIL = 'e-kurosaki@kusakabe.com';
 
 const TASK_OVERLAY_KEYS = ['time_slot', 'status', 'quantity', 'mfg_rep', 'product_name'];
@@ -26,6 +26,21 @@ const DOW_JA = ['日', '月', '火', '水', '木', '金', '土'];
 function requireEnv(name, v) {
   if (!v || !String(v).trim()) {
     throw new Error(`環境変数 ${name} が未設定です`);
+  }
+}
+
+async function loadRecipientsFromDb() {
+  try {
+    const rows = await supabaseFetch(
+      'delivery_notify_recipients?select=email&active=eq.true&order=email.asc'
+    );
+    return [...new Set((rows || []).map((r) => (r.email || '').trim()).filter(Boolean))];
+  } catch (e) {
+    console.warn(
+      'delivery_notify_recipients を読めませんでした（未作成の場合は SQL を実行し CSV を取り込んでください）。フォールバックします。',
+      e.message
+    );
+    return [];
   }
 }
 
@@ -228,11 +243,16 @@ async function main() {
   requireEnv('GMAIL_USER', GMAIL_USER);
   requireEnv('GMAIL_APP_PASSWORD', GMAIL_PASS);
 
-  const recipients = NOTIFY_TO_RAW.split(',')
-    .map((s) => s.trim())
-    .filter(Boolean);
+  let recipients = await loadRecipientsFromDb();
+  if (recipients.length === 0) {
+    recipients = NOTIFY_TO_RAW.split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+  }
   if (!TEST_MODE && recipients.length === 0) {
-    throw new Error('DELIVERY_NOTIFY_TO に送信先メール（カンマ区切り）を設定してください');
+    throw new Error(
+      '送信先がありません。Supabase の delivery_notify_recipients に CSV で登録するか、GitHub Secret の DELIVERY_NOTIFY_TO（カンマ区切り）を設定してください。'
+    );
   }
 
   const todayTokyo = tokyoYmd(new Date());

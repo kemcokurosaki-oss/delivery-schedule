@@ -1,7 +1,8 @@
 name: 入出荷予定週次通知
 # 必要な Repository secrets:
-#   SUPABASE_URL, SUPABASE_SECRET_KEY（service_role 推奨）, GMAIL_USER, GMAIL_APP_PASSWORD,
-#   DELIVERY_NOTIFY_TO（カンマ区切り。例: a@x.com,b@x.com）
+#   SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD
+#   DELIVERY_NOTIFY_TO（任意・DBに宛先が無いときのフォールバック）
+# 本番の宛先は Supabase テーブル delivery_notify_recipients（CSV取り込み）を優先します。
 
 on:
   schedule:
