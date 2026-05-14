@@ -295,10 +295,15 @@
 
     /* 今日の行 */
     tr.today .td-date {
-      border-left: 4px solid #F59E0B !important;
+      border-left: 4px solid #2860A8 !important;
       color: #92400E;
-      font-size: 15px;
+      font-size: 16px;
       font-weight: 900;
+    }
+    tr.today td {
+      padding-top: 10px;
+      padding-bottom: 10px;
+      font-size: 13px;
     }
 
     /* 操作ボタン */
@@ -482,6 +487,43 @@
       color: #333;
       cursor: default;
       user-select: text;
+    }
+
+    /* 今日の行：一覧セルの文字・操作系を少し大きく（.row-from-task より後・詳細度高く） */
+    tr.today .op-btn {
+      font-size: 12px;
+      padding: 3px 7px;
+    }
+    tr.today .op-btn.add-day {
+      font-size: 16px;
+      padding: 2px 9px;
+    }
+    tr.today .type-badge,
+    tr.today .status-badge {
+      font-size: 12px;
+      padding: 2px 7px;
+    }
+    tr.today.row-from-task .task-pick-display,
+    tr.today.row-manual-delivery .task-pick-display {
+      font-size: 12px;
+    }
+    tr.today.row-from-task .task-pick-control,
+    tr.today.row-manual-delivery .task-pick-control {
+      font-size: 12px;
+    }
+    tr.today.row-from-task .task-inline-input.ghost,
+    tr.today.row-manual-delivery .task-inline-input.ghost {
+      font-size: 13px;
+    }
+    tr.today.row-from-task .sales-rep-auto,
+    tr.today.row-manual-delivery .sales-rep-auto {
+      font-size: 13px;
+    }
+    tr.today.row-from-task .task-source-tag {
+      font-size: 11px;
+    }
+    tr.today .type-cell-right {
+      font-size: 11px;
     }
 
     /* ローディング */
@@ -855,6 +897,8 @@
   const deliverySaveTimers = new Map();
   /** renderCalendar 直後に該当行へスクロール（{ deliveryId } または { taskId }） */
   let pendingScrollSpec = null;
+  /** 日付跨ぎで「今日」行を付け直すための 0 時タイマー */
+  let midnightRenderTimer = null;
 
   function attrSel(s) {
     return String(s).replace(/\\/g, '\\\\').replace(/"/g, '\\"');
@@ -1533,6 +1577,10 @@
         if (ymd) holidaySet.add(ymd);
       });
     }
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) return;
+      refreshTodayRowIfDateChanged();
+    });
     await loadAndRender();
     scrollToToday();
   }
@@ -1763,6 +1811,35 @@
     document.getElementById('loading').style.display = 'none';
     document.getElementById('delivery-table').style.display = '';
     applyPendingScroll();
+    scheduleMidnightCalendarRefresh();
+  }
+
+  function localTodayYmd() {
+    const n = new Date();
+    return `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}-${String(n.getDate()).padStart(2, '0')}`;
+  }
+
+  /** 表示中の「今日」行の data-date が実日付とずれていれば再描画（0時跨ぎ・スリープ復帰用） */
+  function refreshTodayRowIfDateChanged() {
+    const mark = document.querySelector('tr.today');
+    if (!mark) return;
+    if (mark.getAttribute('data-date') !== localTodayYmd()) {
+      renderCalendar();
+    }
+  }
+
+  function scheduleMidnightCalendarRefresh() {
+    if (midnightRenderTimer) {
+      clearTimeout(midnightRenderTimer);
+      midnightRenderTimer = null;
+    }
+    const now = new Date();
+    const ms = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 3, 0) - now;
+    midnightRenderTimer = setTimeout(() => {
+      midnightRenderTimer = null;
+      refreshTodayRowIfDateChanged();
+      scheduleMidnightCalendarRefresh();
+    }, Math.max(ms, 1000));
   }
 
   function dowColor(dow, isHol) {
