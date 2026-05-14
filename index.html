@@ -202,15 +202,35 @@
       letter-spacing: 0.02em;
     }
 
-    /* 予定状態バッジ */
+    /* 予定状態バッジ（見た目は入荷/出荷の .type-badge と同寸・同タイポ） */
     .status-badge {
       display: inline-block;
-      padding: 1px 5px;
+      padding: 2px 6px;
       border-radius: 3px;
-      font-size: 10px;
+      font-size: 11px;
+      font-weight: 700;
+      white-space: nowrap;
     }
-    .status-badge.kakutei { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; font-weight: 700; }
-    .status-badge.yotei   { background: #f3e5f5; color: #6a1b9a; border: 1px solid #ce93d8; }
+    .status-badge.yotei   { background: #e3f2fd; color: #1976D2; border: 1px solid #90caf9; }
+    .status-badge.kakutei { background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+
+    /* 予定状態列：入荷/出荷列（.th-col-type / .td-type-cell）と同じ列幅・余白 */
+    thead th.th-col-status,
+    tbody td.td-col-status {
+      width: 66px;
+      max-width: 66px;
+      min-width: 0;
+      box-sizing: border-box;
+      vertical-align: middle;
+      text-align: center;
+    }
+    thead th.th-col-status {
+      padding: 6px 10px;
+    }
+    tbody td.td-col-status {
+      padding: 3px 10px;
+      white-space: nowrap;
+    }
 
     /* 空行（入出荷なし） */
     tr.empty-day td { color: #bbb; }
@@ -246,13 +266,17 @@
     .op-btn.add-day:hover { background: #e8f5e9; }
 
     /* 工程表タスク由来の行（セル内インライン補完）— 入荷/出荷列は折り返さない */
-    tr.row-from-task td:not(.td-date):not(.td-dow):not(.td-type-cell) {
+    tr.row-from-task td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
       background: #fafafa;
       white-space: normal;
       vertical-align: middle;
     }
     tr.row-from-task td.td-type-cell {
       background: #fafafa;
+    }
+    tr.row-from-task td.td-col-status {
+      background: #fafafa;
+      white-space: nowrap;
     }
     tr.row-from-task .task-inline-input.ghost {
       width: 100%;
@@ -290,6 +314,17 @@
       width: 100%;
       text-align: center;
       color: inherit;
+    }
+    tr.row-from-task .task-pick-display.task-pick-status {
+      padding: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    tr.row-from-task .task-pick-wrap[data-pick-wrap="status"] {
+      min-width: 0;
+      width: 100%;
+      max-width: 100%;
     }
     tr.row-from-task .task-pick-display:hover {
       filter: brightness(0.92);
@@ -534,7 +569,7 @@
         <th style="width:32px;">曜</th>
         <th class="th-col-type">入荷/出荷</th>
         <th style="width:65px;">時間帯</th>
-        <th style="width:55px;">予定状態</th>
+        <th class="th-col-status">予定状態</th>
         <th style="width:58px;">工番</th>
         <th style="width:78px;">機械ユニット</th>
         <th style="width:160px;">製品</th>
@@ -1252,7 +1287,7 @@
               ${dateCell}
               <td class="td-type-cell">${typeCellInnerHtml(entry)}</td>
               <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
-              <td style="text-align:center;">${taskStatusPickCell(entry)}</td>
+              <td class="td-col-status">${taskStatusPickCell(entry)}</td>
               <td style="text-align:center;">${entry.project_number || ''}</td>
               <td>${entry.machine_unit || ''}</td>
               <td></td>
@@ -1266,7 +1301,7 @@
               ${dateCell}
               <td class="td-type-cell">${typeCellInnerHtml(entry)}</td>
               <td style="text-align:center;">${entry.time_slot || ''}</td>
-              <td style="text-align:center;">${statusBadge(entry.status)}</td>
+              <td class="td-col-status">${statusBadge(entry.status)}</td>
               <td style="text-align:center;">${entry.project_number || ''}</td>
               <td>${entry.machine_unit || ''}</td>
               <td>${entry.product_name || ''}</td>
