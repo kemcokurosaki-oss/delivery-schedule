@@ -2507,11 +2507,17 @@
     if (tbl) {
       var tr = tbl.getBoundingClientRect();
       if (tr.width > 0 && tr.height > 0) {
-        addHelpItem(container, {
-          title: '入出荷一覧テーブル',
-          text: 'セルをクリックして直接編集できます\n[工程表]タグ付きの行は工程表と連携した行\n手動追加行は右クリックで日付変更・削除が可能',
-          wide: true
-        }, tr);
+        var headerEl = document.querySelector('.header');
+        var headerBottom = headerEl ? headerEl.getBoundingClientRect().bottom : 0;
+        var clampedTop    = Math.max(tr.top, headerBottom);
+        var clampedBottom = Math.min(tr.bottom, window.innerHeight);
+        if (clampedBottom > clampedTop) {
+          addHelpItem(container, {
+            title: '入出荷一覧テーブル',
+            text: 'セルをクリックして直接編集できます\n[工程表]タグ付きの行は工程表と連携した行\n手動追加行は右クリックで日付変更・削除が可能',
+            wide: true
+          }, { top: clampedTop, left: tr.left, right: tr.right, bottom: clampedBottom });
+        }
       }
     }
 
