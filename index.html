@@ -2469,6 +2469,7 @@
   });
   document.addEventListener('keydown', e => {
     if (e.key !== 'Escape') return;
+    closeHelp();
     hideDeliveryContextMenu();
     const dm = document.getElementById('delivery-move-date-overlay');
     if (dm && dm.classList.contains('show')) closeDeliveryMoveDateModal();
