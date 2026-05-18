@@ -2475,6 +2475,131 @@
     if (dm && dm.classList.contains('show')) closeDeliveryMoveDateModal();
   });
 
+  // ─── 使い方ガイド ────────────────────────────────────────
+  var HELP_TIPS = [
+    { id: 'view-range',    title: '表示期間',      text: '前月・当月・翌月の3か月分を表示しています', noBullets: true },
+    { id: 'filter-all',    title: '全表示',        text: 'すべての入荷・出荷予定を表示します', noBullets: true },
+    { id: 'filter-nyuuka', title: '入荷のみ',      text: '入荷予定の行だけに絞り込みます', noBullets: true },
+    { id: 'filter-shukka', title: '出荷のみ',      text: '出荷予定の行だけに絞り込みます', noBullets: true },
+    { id: 'help_btn',      title: '使い方ガイド',  text: '各所の説明吹き出しを表示します\n背景の暗い部分をクリックで閉じます', closeOnClick: true, noBullets: true },
+  ];
+
+  function openHelp() {
+    var helpBtn = document.getElementById('help_btn');
+    if (helpBtn.classList.contains('help-active')) return;
+    helpBtn.classList.add('help-active');
+    var container = document.getElementById('help_tips_container');
+    container.innerHTML = '<div id="help_overlay_bg"></div>';
+    document.getElementById('help_overlay_bg').addEventListener('click', closeHelp);
+    container.classList.add('open');
+
+    HELP_TIPS.forEach(function(tipDef) {
+      var el = document.getElementById(tipDef.id);
+      if (!el) return;
+      var rect = el.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      var cs = window.getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') return;
+      addHelpItem(container, tipDef, rect);
+    });
+
+    var tbl = document.getElementById('delivery-table');
+    if (tbl) {
+      var tr = tbl.getBoundingClientRect();
+      if (tr.width > 0 && tr.height > 0) {
+        addHelpItem(container, {
+          title: '入出荷一覧テーブル',
+          text: 'セルをクリックして直接編集できます\n[工程表]タグ付きの行は工程表と連携した行\n手動追加行は右クリックで日付変更・削除が可能',
+          wide: true
+        }, tr);
+      }
+    }
+
+    var addBtn = document.querySelector('.add-day');
+    if (addBtn) {
+      var abr = addBtn.getBoundingClientRect();
+      if (abr.width > 0 && abr.height > 0) {
+        addHelpItem(container, {
+          title: '＋ 追加ボタン',
+          text: 'クリックするとその日の入荷・出荷予定を手動追加できます',
+          noBullets: true
+        }, abr);
+      }
+    }
+
+    var taskTag = document.querySelector('.task-source-tag');
+    if (taskTag) {
+      var ttr = taskTag.getBoundingClientRect();
+      if (ttr.width > 0 && ttr.height > 0) {
+        addHelpItem(container, {
+          title: '[工程表] タグ',
+          text: '工程表の「工場出荷」タスクから自動取り込みされた行\nクリックすると工程表の出荷期間を直接変更できます',
+          noBullets: true
+        }, ttr);
+      }
+    }
+  }
+
+  function formatHelpTipText(raw, noBullets) {
+    if (raw == null || raw === '') return '';
+    if (noBullets) {
+      return String(raw).split(/\n/).map(function(l) { return l.replace(/^\s+|\s+$/g, ''); }).filter(function(l) { return l.length > 0; }).join('<br>');
+    }
+    var lines = String(raw).split(/\n/).map(function(l) { return l.replace(/^\s+|\s+$/g, ''); }).filter(function(l) { return l.length > 0; });
+    if (lines.length <= 1) return lines[0] || '';
+    return lines.map(function(l) { return '・' + l; }).join('<br>');
+  }
+
+  function addHelpItem(container, tip, rect) {
+    var hl = document.createElement('div');
+    hl.className = 'help-highlight';
+    hl.style.top    = rect.top    + 'px';
+    hl.style.left   = rect.left   + 'px';
+    hl.style.width  = (rect.right  - rect.left) + 'px';
+    hl.style.height = (rect.bottom - rect.top)  + 'px';
+    if (tip.closeOnClick) {
+      hl.style.cursor = 'pointer';
+      hl.addEventListener('click', closeHelp);
+    }
+    container.appendChild(hl);
+
+    var tipDiv = document.createElement('div');
+    tipDiv.className = 'help-tip';
+    if (tip.wide) tipDiv.classList.add('help-tip--wide');
+    tipDiv.innerHTML = '<div class="help-tip-title">' + (tip.title || '') + '</div>' + formatHelpTipText(tip.text, tip.noBullets);
+    container.appendChild(tipDiv);
+
+    requestAnimationFrame(function() {
+      var vw = window.innerWidth;
+      var vh = window.innerHeight;
+      var tw = tipDiv.offsetWidth;
+      var th = tipDiv.offsetHeight;
+      var top  = rect.bottom + 8;
+      var left = rect.left;
+      if (left + tw > vw - 8) left = vw - tw - 8;
+      if (left < 4) left = 4;
+      if (top + th > vh - 8) {
+        top = rect.top - th - 8;
+        if (top < 4) top = 4;
+        tipDiv.classList.add('tip-above');
+      }
+      tipDiv.style.top  = top  + 'px';
+      tipDiv.style.left = left + 'px';
+    });
+
+    hl.addEventListener('mouseenter', function() { tipDiv.classList.add('tip-visible'); });
+    hl.addEventListener('mouseleave', function() { tipDiv.classList.remove('tip-visible'); });
+  }
+
+  function closeHelp() {
+    var btn = document.getElementById('help_btn');
+    if (btn) btn.classList.remove('help-active');
+    var container = document.getElementById('help_tips_container');
+    container.classList.remove('open');
+    container.innerHTML = '';
+  }
+  // ===== 使い方ガイド ここまで =====
+
   // ─── 起動 ──────────────────────────────────────────────
   init();
 </script>
