@@ -664,6 +664,78 @@
       box-shadow: none;
     }
 
+    /* 手動タスク完了行 */
+    tr.row-manual-delivery.row-delivery-completed.weekday {
+      --comp-bg: #eeeeee;
+      --comp-hover-bg: #d5dae3;
+    }
+    tr.row-manual-delivery.row-delivery-completed.saturday {
+      --comp-bg: #e3f2fd;
+      --comp-hover-bg: #d5dae3;
+    }
+    tr.row-manual-delivery.row-delivery-completed.sunday,
+    tr.row-manual-delivery.row-delivery-completed.holiday {
+      --comp-bg: #fce4ec;
+      --comp-hover-bg: #d5dae3;
+    }
+    tr.row-manual-delivery.row-delivery-completed,
+    tr.row-manual-delivery.row-delivery-completed td,
+    tr.row-manual-delivery.row-delivery-completed .type-cell-inner,
+    tr.row-manual-delivery.row-delivery-completed .type-cell-row,
+    tr.row-manual-delivery.row-delivery-completed .task-pick-wrap,
+    tr.row-manual-delivery.row-delivery-completed .task-pick-display,
+    tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost,
+    tr.row-manual-delivery.row-delivery-completed button,
+    tr.row-manual-delivery.row-delivery-completed select {
+      background-color: var(--comp-bg) !important;
+      background-image: none !important;
+    }
+    tr.row-manual-delivery.row-delivery-completed button,
+    tr.row-manual-delivery.row-delivery-completed select {
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    tr.row-manual-delivery.row-delivery-completed td {
+      color: #999;
+    }
+    tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost {
+      color: #999;
+      -webkit-text-fill-color: #999;
+      opacity: 1;
+    }
+    tr.row-manual-delivery.row-delivery-completed:hover,
+    tr.row-manual-delivery.row-delivery-completed:hover td,
+    tr.row-manual-delivery.row-delivery-completed:hover .type-cell-inner,
+    tr.row-manual-delivery.row-delivery-completed:hover .type-cell-row,
+    tr.row-manual-delivery.row-delivery-completed:hover .task-pick-wrap,
+    tr.row-manual-delivery.row-delivery-completed:hover .task-pick-display,
+    tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost,
+    tr.row-manual-delivery.row-delivery-completed:hover button,
+    tr.row-manual-delivery.row-delivery-completed:hover select {
+      background-color: var(--comp-hover-bg) !important;
+    }
+    tr.row-manual-delivery.row-delivery-completed .task-span-day-badge {
+      color: #999;
+    }
+    tr.row-manual-delivery.row-delivery-completed .type-badge {
+      background-color: #d0d0d0 !important;
+      color: #666;
+      border-color: #bdbdbd;
+    }
+    tr.row-manual-delivery.row-delivery-completed .status-badge.kanryo {
+      background-color: #b0b0b0 !important;
+      color: #fff;
+      border-color: #9e9e9e;
+      box-shadow: none;
+    }
+    tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost:focus {
+      background-color: var(--comp-bg) !important;
+      box-shadow: none;
+    }
+    tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:focus {
+      background-color: var(--comp-hover-bg) !important;
+    }
+
     /* ローディング */
     .loading {
       text-align: center;
