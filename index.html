@@ -1688,7 +1688,7 @@
       if (trTask && trTask.dataset.taskCompleted === '1') return;
       if (trTask) schedulePersistTaskOverlay(trTask);
       else if (trMan) schedulePersistDelivery(trMan);
-      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
+      if ((t.tagName === 'SELECT' || t.tagName === 'INPUT') && t.classList.contains('task-pick-control')) {
         collapseTaskPickSelect(t);
       }
     });
@@ -1700,7 +1700,7 @@
       const tr = trTask || trMan;
       if (!tr) return;
       if (trTask && trTask.dataset.taskCompleted === '1') return;
-      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
+      if ((t.tagName === 'SELECT' || t.tagName === 'INPUT') && t.classList.contains('task-pick-control')) {
         collapseTaskPickSelect(t);
         if (trTask) schedulePersistTaskOverlay(trTask);
         else if (trMan) schedulePersistDelivery(trMan);
