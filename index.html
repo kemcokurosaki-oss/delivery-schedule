@@ -1454,10 +1454,12 @@
     } else if (pick === 'status') {
       const sel = wrap.querySelector('select.task-pick-control');
       if (!sel) return;
-      const isK = sel.value === '確定';
-      btn.innerHTML = isK
+      const v = sel.value;
+      btn.innerHTML = v === '確定'
         ? '<span class="status-badge kakutei">確定</span>'
-        : '<span class="status-badge yotei">予定</span>';
+        : v === '完了'
+          ? '<span class="status-badge kanryo">完了</span>'
+          : '<span class="status-badge yotei">予定</span>';
     }
   }
 
