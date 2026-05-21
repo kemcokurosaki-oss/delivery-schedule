@@ -1747,6 +1747,8 @@
       if (t.classList && t.classList.contains('task-timeslot-custom')) {
         const wrap = t.closest('[data-pick-wrap="time_slot"]');
         if (!wrap) return;
+        // フォーカス先が同じラップ内（selectへの切替）なら閉じない
+        if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
         const trTask2 = wrap.closest('tr.row-from-task');
         const trMan2 = wrap.closest('tr.row-manual-delivery');
         if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
