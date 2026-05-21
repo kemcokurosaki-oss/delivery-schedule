@@ -2631,6 +2631,8 @@
   function closeHelp() {
     var btn = document.getElementById('help_btn');
     if (btn) btn.classList.remove('help-active');
+    var guideBtn = document.getElementById('guide_btn');
+    if (guideBtn) guideBtn.style.display = 'none';
     var container = document.getElementById('help_tips_container');
     container.classList.remove('open');
     container.innerHTML = '';
