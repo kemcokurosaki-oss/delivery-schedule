@@ -1427,23 +1427,34 @@
   function syncPickDisplay(wrap) {
     if (!wrap) return;
     const pick = wrap.getAttribute('data-pick-wrap');
-    const sel = wrap.querySelector('select.task-pick-control');
-    const inp = wrap.querySelector('input.task-pick-control');
-    const ctrl = sel || inp;
     const btn = wrap.querySelector('.task-pick-display');
-    if (!ctrl || !btn) return;
+    if (!btn) return;
     if (pick === 'type') {
-      const v = (ctrl.value || '').trim();
+      const sel = wrap.querySelector('select.task-pick-control');
+      if (!sel) return;
+      const v = (sel.value || '').trim();
       btn.innerHTML = v === '入荷' || v === '出荷' ? typeBadge(v) : '<span class="task-pick-placeholder">—</span>';
     } else if (pick === 'time_slot') {
-      const v = (ctrl.value || '').trim();
+      const hidden = wrap.querySelector('input[type="hidden"][data-overlay="time_slot"]');
+      const v = hidden ? (hidden.value || '').trim() : '';
       btn.innerHTML = v ? escapeAttr(v) : '<span class="task-pick-placeholder">—</span>';
     } else if (pick === 'status') {
-      const isK = ctrl.value === '確定';
+      const sel = wrap.querySelector('select.task-pick-control');
+      if (!sel) return;
+      const isK = sel.value === '確定';
       btn.innerHTML = isK
         ? '<span class="status-badge kakutei">確定</span>'
         : '<span class="status-badge yotei">予定</span>';
     }
+  }
+
+  function collapseTimeslotEditor(wrap) {
+    if (!wrap) return;
+    const editor = wrap.querySelector('.task-timeslot-editor');
+    if (editor) editor.style.display = 'none';
+    const btn = wrap.querySelector('.task-pick-display');
+    if (btn) btn.style.display = '';
+    syncPickDisplay(wrap);
   }
 
   function collapseTaskPickSelect(sel) {
