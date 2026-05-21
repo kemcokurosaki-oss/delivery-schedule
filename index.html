@@ -1384,12 +1384,24 @@
       return `<span class="task-time-readonly" title="工程表で完了済みのため一覧からは変更できません">${disp}</span>`;
     }
     const v = (entry.time_slot || '').trim();
-    const disp = v
-      ? escapeAttr(v)
-      : '<span class="task-pick-placeholder">—</span>';
+    const fixedOpts = ['午前', '午後'];
+    const isFixed = fixedOpts.includes(v);
+    const selectVal = isFixed ? v : (v ? '__custom__' : '');
+    const opts = fixedOpts.map(o =>
+      `<option value="${o}"${selectVal === o ? ' selected' : ''}>${o}</option>`
+    ).join('');
+    const disp = v ? escapeAttr(v) : '<span class="task-pick-placeholder">—</span>';
     return `<div class="task-pick-wrap" data-pick-wrap="time_slot">
       <button type="button" class="task-pick-display task-pick-time" aria-label="時間帯をダブルクリックで編集">${disp}</button>
-      <input type="text" data-overlay="time_slot" class="task-pick-control task-pick-control-input" list="timeslot-suggestions" placeholder="午前/午後" value="${escapeAttr(v)}" style="display:none;">
+      <div class="task-timeslot-editor">
+        <select class="task-timeslot-select">
+          <option value=""${selectVal === '' ? ' selected' : ''}>—</option>
+          ${opts}
+          <option value="__custom__"${selectVal === '__custom__' ? ' selected' : ''}>自由入力</option>
+        </select>
+        <input type="text" class="task-timeslot-custom" placeholder="入力..." value="${!isFixed ? escapeAttr(v) : ''}" style="${selectVal === '__custom__' ? '' : 'display:none;'}">
+      </div>
+      <input type="hidden" data-overlay="time_slot" value="${escapeAttr(v)}">
     </div>`;
   }
 
