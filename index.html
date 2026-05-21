@@ -1643,10 +1643,6 @@
     if (typeChanged || pnChanged) {
       requestScrollAfterNextRender({ deliveryId: rawId });
       renderCalendar();
-    } else if (tr.isConnected) {
-      requestAnimationFrame(() => {
-        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
     }
   }
 
