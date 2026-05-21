@@ -2091,9 +2091,8 @@
               ? `<td class="td-date" rowspan="${dayEntries.length}">${m}/${d}</td>
                  <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
               : '';
-            const noteCell = fromTask
-              ? taskShipmentNoteTriggerHtml(entry)
-              : taskInlineTextInput('note', entry);
+            const linkCell = fromTask ? taskShipmentNoteTriggerHtml(entry) : '';
+            const noteCell = taskInlineTextInput('note', entry);
             const opCell = fromTask
               ? (idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に手動で追加">＋</button>` : '')
               : (idx === 0 ? `<button type="button" class="op-btn add-day" onclick="openModal('${dateStr}')" title="同じ日に追加">＋</button>` : '');
