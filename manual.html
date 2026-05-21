@@ -703,6 +703,17 @@
     function toggleSection(headerEl) {
         headerEl.closest('.section').classList.toggle('collapsed');
     }
+
+    function updateScrollMargin() {
+        const wrapper = document.querySelector('.sticky-wrapper');
+        if (!wrapper) return;
+        const h = wrapper.getBoundingClientRect().height;
+        document.querySelectorAll('[id]').forEach(el => {
+            el.style.scrollMarginTop = (h + 8) + 'px';
+        });
+    }
+    window.addEventListener('load', updateScrollMargin);
+    window.addEventListener('resize', updateScrollMargin);
 </script>
 
 </body>
