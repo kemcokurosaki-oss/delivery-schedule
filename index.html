@@ -1720,6 +1720,12 @@
           ghost.blur();
           return;
         }
+        const pickInp = e.target.closest('input.task-pick-control');
+        if (pickInp && tbody.contains(pickInp)) {
+          e.preventDefault();
+          pickInp.blur();
+          return;
+        }
       }
       if (e.key !== 'Enter' && e.key !== ' ') return;
       const trig = e.target.closest('.task-shipment-date-trigger');
