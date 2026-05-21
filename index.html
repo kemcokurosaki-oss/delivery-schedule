@@ -1725,10 +1725,11 @@
         if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
         const custom = wrap.querySelector('.task-timeslot-custom');
         const hidden = wrap.querySelector('input[type="hidden"][data-overlay="time_slot"]');
-        if (t.value === '__custom__') {
+        const effectiveVal = t.value === '__open_sentinel__' ? '' : t.value;
+        if (effectiveVal === '__custom__') {
           if (custom) { custom.style.display = ''; custom.focus(); }
         } else {
-          if (hidden) hidden.value = t.value;
+          if (hidden) hidden.value = effectiveVal;
           if (custom) { custom.style.display = 'none'; custom.value = ''; }
           collapseTimeslotEditor(wrap);
           if (trTask2) schedulePersistTaskOverlay(trTask2);
