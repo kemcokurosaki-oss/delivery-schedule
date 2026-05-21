@@ -1760,6 +1760,7 @@
       if (inp && tbody.contains(inp)) {
         const tr = inp.closest('tr.row-from-task') || inp.closest('tr.row-manual-delivery');
         if (tr) {
+          if (tr.dataset.deliveryCompleted === '1') return;
           e.preventDefault();
           inp.readOnly = false;
           inp.focus();
@@ -1774,6 +1775,7 @@
       const wrap = btn.closest('[data-pick-wrap]');
       const tr = wrap && (wrap.closest('tr.row-from-task') || wrap.closest('tr.row-manual-delivery'));
       if (!wrap || !tr) return;
+      if (tr.dataset.deliveryCompleted === '1' && wrap.getAttribute('data-pick-wrap') !== 'status') return;
       if (wrap.getAttribute('data-pick-wrap') === 'time_slot') {
         const editor = wrap.querySelector('.task-timeslot-editor');
         if (!editor) return;
