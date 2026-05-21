@@ -1458,8 +1458,7 @@
   }
 
   function collapseTaskPickSelect(sel) {
-    if (!sel || !sel.classList.contains('task-pick-control')) return;
-    if (sel.tagName !== 'SELECT' && sel.tagName !== 'INPUT') return;
+    if (!sel || sel.tagName !== 'SELECT' || !sel.classList.contains('task-pick-control')) return;
     const wrap = sel.closest('[data-pick-wrap]');
     if (!wrap) return;
     syncPickDisplay(wrap);
