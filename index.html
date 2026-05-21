@@ -1498,7 +1498,7 @@
         sales_rep: gathered.sales_rep,
         mfg_rep: gathered.mfg_rep,
         product_name: gathered.product_name,
-        note: existing && existing.note != null && String(existing.note).trim() !== '' ? existing.note : null,
+        note: gathered.note,
       };
       const { data: savedRows, error } = await sb
         .from('task_shipment_overlays')
