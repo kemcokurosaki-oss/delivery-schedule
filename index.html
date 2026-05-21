@@ -2281,6 +2281,10 @@
               tr.dataset.deliveryId = String(entry.id);
               tr.dataset.deliveryDate = (entry.date || '').slice(0, 10);
               tr.title = '右クリックで日付変更・削除';
+              if (entry.status === '完了') {
+                tr.classList.add('row-delivery-completed');
+                tr.dataset.deliveryCompleted = '1';
+              }
             }
             tr.dataset.date = dateStr;
             const dateCell = idx === 0
