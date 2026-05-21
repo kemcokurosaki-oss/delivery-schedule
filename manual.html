@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>入出荷一覧表 操作マニュアル</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Noto Sans JP', 'メイリオ', Meiryo, sans-serif;
+            font-size: 14px;
+            background: #f0f4f8;
+            color: #2c3e50;
+            line-height: 1.65;
+        }
+
+        /* ===== ページヘッダー ===== */
+        .page-header {
+            background: linear-gradient(135deg, #1a4a2e 0%, #2e8b57 100%);
+            color: #fff;
+            padding: 24px 40px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            box-shadow: 0 3px 12px rgba(0,0,0,0.25);
+        }
+        .page-header__inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            max-width: 940px;
+            margin: 0 auto;
+        }
+        .page-header h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.04em; }
+        .page-header p  { font-size: 12px; color: #a8d5b8; margin-top: 3px; }
+        .header-badge {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px;
+            padding: 4px 14px;
+            font-size: 12px;
+            color: #e0f5ea;
+            white-space: nowrap;
+        }
+
+        /* ===== 目次バー ===== */
+        .toc-bar {
+            background: #fff;
+            border-bottom: 2px solid #d5e8da;
+            padding: 10px 40px;
+            position: sticky;
+            top: 77px;
+            z-index: 100;
+        }
+        .toc-bar__inner {
+            max-width: 940px;
+            margin: 0 auto;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 12px;
+            font-size: 12px;
+        }
+        .toc-bar a {
+            color: #2e8b57;
+            text-decoration: none;
+            padding: 2px 6px;
+            border-radius: 3px;
+            transition: background 0.15s;
+            white-space: nowrap;
+        }
+        .toc-bar a:hover { background: #e6f4ec; }
+        .toc-sep { color: #ccc; font-size: 11px; line-height: 22px; }
+
+        /* ===== メインコンテンツ ===== */
+        .content {
+            max-width: 940px;
+            margin: 28px auto 60px;
+            padding: 0 24px;
+        }
+
+        /* ===== カテゴリ見出し ===== */
+        .cat-heading {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #7a8fa6;
+            margin: 32px 0 10px;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #d5e8da;
+        }
+        .cat-heading:first-child { margin-top: 0; }
+
+        /* ===== セクション ===== */
+        .section {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.07);
+            margin-bottom: 16px;
+            overflow: hidden;
+            border: 1px solid #ddeee4;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 18px;
+            border-left: 5px solid #2e8b57;
+            background: #f4faf6;
+            cursor: pointer;
+            user-select: none;
+        }
+        .section-header .icon { font-size: 17px; line-height: 1; flex-shrink: 0; }
+        .section-header h2 { font-size: 14px; font-weight: 700; color: #1a4a2e; flex: 1; }
+        .section-header .toggle-arrow { font-size: 11px; color: #7a8fa6; transition: transform 0.2s; }
+        .section.collapsed .toggle-arrow { transform: rotate(-90deg); }
+        .section-body {
+            padding: 14px 18px 18px;
+            border-top: 1px solid #e4f0e8;
+        }
+        .section.collapsed .section-body { display: none; }
+
+        /* ===== テーブル ===== */
+        .op-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .op-table th {
+            background: #f1f8f3;
+            color: #4a6a52;
+            font-weight: 700;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 7px 12px;
+            border-bottom: 2px solid #d5e8da;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .op-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #edf5ef;
+            vertical-align: top;
+        }
+        .op-table tr:last-child td { border-bottom: none; }
+        .op-table tr:hover td { background: #fafff9; }
+        .op-table td:first-child {
+            white-space: nowrap;
+            font-weight: 500;
+            color: #2c3e50;
+            width: 200px;
+        }
+
+        /* ===== キー装飾 ===== */
+        .key {
+            display: inline-block;
+            background: #e6f4ec;
+            color: #1a6640;
+            border: 1px solid #a8d5b8;
+            border-radius: 4px;
+            padding: 1px 8px;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .key--click { background: #eafaf1; color: #1a7a47; border-color: #a8dfc0; }
+        .key--dbl   { background: #fef9e7; color: #8a6d00; border-color: #f5d76e; }
+        .key--right { background: #f0e8ff; color: #5b2d8e; border-color: #c9a8f0; }
+        .key--warn  { background: #feede8; color: #b03a1b; border-color: #f1a88a; }
+
+        /* ===== ヒント・注意ボックス ===== */
+        .tip-box, .note-box, .warn-box, .info-box {
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 13px;
+            margin-top: 12px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .tip-box  { background: #eafaf1; border: 1px solid #a8dfc0; color: #1a6640; }
+        .note-box { background: #fef9e7; border: 1px solid #f5d76e; color: #7a6000; }
+        .warn-box { background: #feede8; border: 1px solid #f1a88a; color: #8b2500; }
+        .info-box { background: #eaf2fb; border: 1px solid #b3d0ec; color: #1a4e7a; }
+
+        /* ===== ラベル ===== */
+        .lbl {
+            display: inline-block;
+            background: #2e8b57;
+            color: #fff;
+            border-radius: 4px;
+            padding: 1px 7px;
+            font-size: 11px;
+            font-weight: 700;
+            vertical-align: middle;
+            margin-right: 2px;
+        }
+        .lbl--blue   { background: #2e6da4; }
+        .lbl--orange { background: #e67e22; }
+        .lbl--gray   { background: #95a5a6; }
+        .lbl--red    { background: #e74c3c; }
+
+        /* ===== ステップ一覧 ===== */
+        .step-list {
+            counter-reset: step;
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .step-list li {
+            counter-increment: step;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            font-size: 13px;
+        }
+        .step-list li::before {
+            content: counter(step);
+            background: #2e8b57;
+            color: #fff;
+            border-radius: 50%;
+            min-width: 22px;
+            height: 22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        /* ===== 行カラーサンプル ===== */
+        .color-sample {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            border: 1px solid rgba(0,0,0,0.15);
+            vertical-align: middle;
+            margin-right: 4px;
+        }
+
+        /* ===== 説明段落 ===== */
+        .desc { font-size: 13px; color: #5a6a7e; margin-bottom: 12px; }
+
+        /* ===== スクロールマージン ===== */
+        [id] { scroll-margin-top: 140px; }
+
+        /* ===== フッター ===== */
+        footer {
+            text-align: center;
+            font-size: 12px;
+            color: #aab4be;
+            padding: 20px;
+        }
+
+        @media (max-width: 640px) {
+            .page-header { padding: 16px 16px 14px; }
+            .toc-bar { padding: 8px 16px; top: 68px; }
+            .content { padding: 0 12px; }
+            .op-table td:first-child { width: 140px; }
+        }
+    </style>
+</head>
+<body>
+
+<header class="page-header">
+    <div class="page-header__inner">
+        <div>
+            <h1>📖 入出荷一覧表 操作マニュアル</h1>
+            <p>入・出荷予定一覧の基本操作から編集操作まで、すべての機能をまとめたマニュアルです</p>
+        </div>
+        <div class="header-badge">Ver. 2025</div>
+    </div>
+</header>
+
+<nav class="toc-bar">
+    <div class="toc-bar__inner">
+        <span style="color:#4a6a52; font-weight:700; font-size:11px;">目次</span>
+        <span class="toc-sep">|</span>
+        <a href="#screen">① 画面構成</a>
+        <a href="#period">② 表示期間</a>
+        <a href="#filter">③ フィルター</a>
+        <a href="#table">④ 一覧テーブル</a>
+        <a href="#color">⑤ 行の色分け</a>
+        <a href="#columns">⑥ 列の説明</a>
+        <a href="#task-tag">⑦ [工程表]タグ行</a>
+        <a href="#edit-cell">⑧ セル直接編集</a>
+        <a href="#add">⑨ 手動追加</a>
+        <a href="#rightclick">⑩ 右クリックメニュー</a>
+        <a href="#today">⑪ 今日の表示</a>
+        <a href="#hint">⑫ ヒント表示</a>
+    </div>
+</nav>
+
+<main class="content">
+
+    <p class="cat-heading">■ 基本操作</p>
+
+    <!-- ① 画面構成 -->
+    <section class="section" id="screen">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">🖥️</span>
+            <h2>① 画面構成</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <table class="op-table">
+                <thead><tr><th>エリア</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td>ヘッダー</td>
+                        <td>タイトル / 表示期間 / フィルターボタン（全表示・入荷のみ・出荷のみ）/ 💡ヒント表示ボタン</td>
+                    </tr>
+                    <tr>
+                        <td>メインテーブル</td>
+                        <td>入荷・出荷予定の一覧。日付順に並び、各行に詳細情報が表示されます</td>
+                    </tr>
+                    <tr>
+                        <td>通知バナー</td>
+                        <td>保存成功・失敗の通知が画面上部に短時間表示されます</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ② 表示期間 -->
+    <section class="section" id="period">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">📅</span>
+            <h2>② 表示期間</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc">ヘッダー中央に現在の表示期間が表示されます。</p>
+            <table class="op-table">
+                <thead><tr><th>項目</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td>表示範囲</td>
+                        <td><strong>前月〜翌6か月先</strong>の計8か月分を表示します</td>
+                    </tr>
+                    <tr>
+                        <td>更新タイミング</td>
+                        <td>ページを開いたとき・日付が変わったとき（0時）に自動更新されます</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="tip-box">
+                <span>💡</span>
+                <span>今日の行は左に青いボーダーが付き、太字で強調表示されます。</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ③ フィルター -->
+    <section class="section" id="filter">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">🔽</span>
+            <h2>③ フィルター（表示絞り込み）</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc">ヘッダーのボタンで表示する行を絞り込めます。</p>
+            <table class="op-table">
+                <thead><tr><th>ボタン</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="key">全表示</span></td>
+                        <td>入荷・出荷両方の予定をすべて表示します（デフォルト）</td>
+                    </tr>
+                    <tr>
+                        <td><span class="key">入荷のみ</span></td>
+                        <td>入荷予定の行だけに絞り込みます</td>
+                    </tr>
+                    <tr>
+                        <td><span class="key">出荷のみ</span></td>
+                        <td>出荷予定の行だけに絞り込みます</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ④ 一覧テーブルの見方 -->
+    <section class="section" id="table">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">📋</span>
+            <h2>④ 一覧テーブルの見方</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc">テーブルは日付順に並んでいます。同じ日に複数件ある場合、日付セルはまとめて表示（結合）されます。</p>
+            <table class="op-table">
+                <thead><tr><th>操作</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td>同日複数行</td>
+                        <td>日付列が結合され、一まとまりとして表示されます</td>
+                    </tr>
+                    <tr>
+                        <td>今日の行</td>
+                        <td>左ボーダーが青くなり、太字で強調表示されます</td>
+                    </tr>
+                    <tr>
+                        <td>＋ボタン（追加）</td>
+                        <td>各日付の行末にある。クリックするとその日付の予定を手動追加できます</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ⑤ 行の色分け -->
+    <section class="section" id="color">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">🎨</span>
+            <h2>⑤ 行の色分け</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <table class="op-table">
+                <thead><tr><th>色</th><th>意味</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="color-sample" style="background:#fff0f0;"></span>ピンク系</td>
+                        <td>日曜日・祝日の日付行</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background:#f0f4ff;"></span>青系</td>
+                        <td>土曜日の日付行</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background:#ffffff;"></span>白</td>
+                        <td>平日の日付行</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background:#fff9e6;"></span>黄色系</td>
+                        <td>今日の行（強調表示）</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background:#f0fff4;"></span>薄緑系</td>
+                        <td>ステータスが「確定」の行</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background:#f5f5f5;"></span>グレー系</td>
+                        <td>ステータスが「完了」の行</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ⑥ 列の説明 -->
+    <section class="section" id="columns">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">📝</span>
+            <h2>⑥ 列の説明</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <table class="op-table">
+                <thead><tr><th>列名</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr><td>日付 / 曜日</td><td>入出荷の予定日と曜日</td></tr>
+                    <tr><td>入荷 / 出荷</td><td>種別（入荷 or 出荷）</td></tr>
+                    <tr><td>時間帯</td><td>午前 / 午後 / 昼前後 など</td></tr>
+                    <tr><td>状態</td><td>予定 / 確定 / 完了 のいずれか</td></tr>
+                    <tr><td>工事番号</td><td>対象の工事番号</td></tr>
+                    <tr><td>機械</td><td>機械名とユニット情報</td></tr>
+                    <tr><td>製品名</td><td>製品・部品の名称</td></tr>
+                    <tr><td>数量</td><td>入出荷の数量</td></tr>
+                    <tr><td>営業担当</td><td>担当営業の氏名</td></tr>
+                    <tr><td>製造・資材</td><td>担当の製造・資材担当者</td></tr>
+                    <tr><td>備考</td><td>自由記入欄</td></tr>
+                    <tr><td>リンク</td><td>詳細工程表などへのリンク</td></tr>
+                    <tr><td>操作</td><td>追加（＋）ボタン</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ⑦ [工程表]タグ行 -->
+    <section class="section" id="task-tag">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">🔗</span>
+            <h2>⑦ [工程表] タグ付き行</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc"><span class="lbl lbl--blue">[工程表]</span> タグが付いた行は、全体工程表の「工場出荷」タスクから<strong>自動取り込み</strong>された行です。</p>
+            <table class="op-table">
+                <thead><tr><th>操作</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="key key--click">出荷期間セルをクリック</span></td>
+                        <td>ポップアップが開き、工程表の出荷期間（開始日〜終了日）を直接変更できます。変更は工程表にも反映されます</td>
+                    </tr>
+                    <tr>
+                        <td>自動更新</td>
+                        <td>工程表でタスクが更新されると、次回ページ読み込み時に自動で反映されます</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="note-box">
+                <span>⚠️</span>
+                <span>[工程表]タグ行の<strong>日付変更は出荷期間セルのクリック</strong>から行ってください。右クリックメニューによる日付変更は手動追加行専用です。</span>
+            </div>
+            <div class="tip-box">
+                <span>💡</span>
+                <span>工程表との連携情報を補足したい場合は、備考欄をクリックして直接入力できます。</span>
+            </div>
+        </div>
+    </section>
+
+    <p class="cat-heading">■ 編集操作</p>
+
+    <!-- ⑧ セルの直接編集 -->
+    <section class="section" id="edit-cell">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">✏️</span>
+            <h2>⑧ セルの直接編集（インライン編集）</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc">多くのセルはクリックするとその場で直接編集できます。</p>
+            <table class="op-table">
+                <thead><tr><th>操作</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="key key--click">セルをクリック</span></td>
+                        <td>編集可能なセルは入力欄またはドロップダウンに変わります</td>
+                    </tr>
+                    <tr>
+                        <td>Enter / Tab</td>
+                        <td>入力を確定します</td>
+                    </tr>
+                    <tr>
+                        <td>Escape</td>
+                        <td>編集をキャンセルします</td>
+                    </tr>
+                    <tr>
+                        <td>セル外をクリック</td>
+                        <td>入力が確定され自動保存されます</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p style="font-size:13px; font-weight:700; margin-top:14px; margin-bottom:6px;">編集できる列</p>
+            <table class="op-table">
+                <thead><tr><th>列</th><th>入力方式</th></tr></thead>
+                <tbody>
+                    <tr><td>入荷 / 出荷</td><td>ドロップダウン選択</td></tr>
+                    <tr><td>時間帯</td><td>ドロップダウン選択</td></tr>
+                    <tr><td>状態</td><td>ドロップダウン選択（予定 / 確定 / 完了）</td></tr>
+                    <tr><td>工事番号</td><td>テキスト入力（入力時に機械名・営業担当を自動補完）</td></tr>
+                    <tr><td>機械</td><td>テキスト入力</td></tr>
+                    <tr><td>製品名</td><td>テキスト入力</td></tr>
+                    <tr><td>数量</td><td>数値入力</td></tr>
+                    <tr><td>営業担当</td><td>テキスト入力</td></tr>
+                    <tr><td>製造・資材</td><td>テキスト入力</td></tr>
+                    <tr><td>備考</td><td>テキスト入力</td></tr>
+                </tbody>
+            </table>
+            <div class="info-box">
+                <span>ℹ️</span>
+                <span>工事番号を入力すると、登録済みの機械名・営業担当が自動で補完されます。</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑨ 手動追加 -->
+    <section class="section" id="add">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">➕</span>
+            <h2>⑨ 手動での予定追加</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc">工程表と連携していない入荷・出荷予定を手動で追加できます。</p>
+            <ol class="step-list">
+                <li>追加したい日付の行末にある <strong>「＋」ボタン</strong> をクリックします</li>
+                <li>モーダル（入力フォーム）が開きます</li>
+                <li>入荷/出荷・時間帯・工事番号などを入力します</li>
+                <li><strong>「追加」</strong> ボタンを押して保存します</li>
+            </ol>
+            <table class="op-table" style="margin-top:12px;">
+                <thead><tr><th>入力項目</th><th>内容</th><th>必須</th></tr></thead>
+                <tbody>
+                    <tr><td>日付</td><td>＋ボタンを押した日が自動入力されます</td><td></td></tr>
+                    <tr><td>入荷 / 出荷</td><td>種別を選択します</td><td style="text-align:center;"><span class="lbl lbl--red">必須</span></td></tr>
+                    <tr><td>時間帯</td><td>午前 / 午後 / 昼前後 など</td><td></td></tr>
+                    <tr><td>状態</td><td>予定 / 確定 / 完了</td><td></td></tr>
+                    <tr><td>工事番号</td><td>工番を入力（自動補完あり）</td><td></td></tr>
+                    <tr><td>機械</td><td>機械名</td><td></td></tr>
+                    <tr><td>製品名</td><td>製品・部品名</td><td></td></tr>
+                    <tr><td>数量</td><td>数量</td><td></td></tr>
+                    <tr><td>営業担当</td><td>担当営業（工番入力時に自動補完）</td><td></td></tr>
+                    <tr><td>製造・資材</td><td>担当者名</td><td></td></tr>
+                    <tr><td>備考</td><td>自由記入</td><td></td></tr>
+                </tbody>
+            </table>
+            <div class="tip-box" style="margin-top:12px;">
+                <span>💡</span>
+                <span>追加した行は <span class="lbl lbl--orange">手動</span> として区別され、右クリックで日付変更・削除ができます。</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑩ 右クリックメニュー -->
+    <section class="section" id="rightclick">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">🖱️</span>
+            <h2>⑩ 右クリックメニュー（手動追加行のみ）</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc">手動で追加した行を右クリックするとメニューが表示されます。</p>
+            <table class="op-table">
+                <thead><tr><th>メニュー</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="key key--right">日付変更</span></td>
+                        <td>カレンダーが表示され、予定日を変更できます</td>
+                    </tr>
+                    <tr>
+                        <td><span class="key key--warn">削除</span></td>
+                        <td>確認ダイアログが表示され、行を削除できます</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="warn-box">
+                <span>⚠️</span>
+                <span>削除した行は元に戻せません。操作前に必ず確認してください。</span>
+            </div>
+            <div class="note-box" style="margin-top:8px;">
+                <span>⚠️</span>
+                <span>[工程表]タグ付きの行は右クリックメニューが表示されません。工程表連携行の日付変更は出荷期間セルのクリックで行ってください。</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ⑪ 今日の表示 -->
+    <section class="section" id="today">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">📍</span>
+            <h2>⑪ 今日の行について</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <table class="op-table">
+                <thead><tr><th>特徴</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr><td>強調表示</td><td>今日の日付行は左に青いボーダーが付き、太字で表示されます</td></tr>
+                    <tr><td>自動更新</td><td>0時を過ぎると自動的に「今日の行」が翌日に切り替わります</td></tr>
+                    <tr><td>スクロール位置</td><td>ページ読み込み時、今日の行付近が見える位置に自動スクロールします</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ⑫ ヒント表示 -->
+    <section class="section" id="hint">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="icon">💡</span>
+            <h2>⑫ ヒント表示</h2>
+            <span class="toggle-arrow">▼</span>
+        </div>
+        <div class="section-body">
+            <p class="desc">ヘッダー右端の <strong>「💡 ヒント表示」</strong> ボタンを押すと、画面各所の説明吹き出しが表示されます。</p>
+            <table class="op-table">
+                <thead><tr><th>操作</th><th>内容</th></tr></thead>
+                <tbody>
+                    <tr>
+                        <td><span class="key">💡 ヒント表示</span> ボタン</td>
+                        <td>各ボタン・テーブルに説明の吹き出しが表示されます</td>
+                    </tr>
+                    <tr>
+                        <td>要素にマウスを重ねる</td>
+                        <td>その要素の説明がポップアップで表示されます</td>
+                    </tr>
+                    <tr>
+                        <td>背景の暗い部分をクリック</td>
+                        <td>ヒント表示を閉じます</td>
+                    </tr>
+                    <tr>
+                        <td>Escape キー</td>
+                        <td>ヒント表示を閉じます</td>
+                    </tr>
+                    <tr>
+                        <td><span class="key">📖 操作マニュアルを開く</span> ボタン</td>
+                        <td>ヒント表示中のみ表示されます。このマニュアルを別タブで開きます</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+</main>
+
+<footer>
+    入出荷一覧表 操作マニュアル
+</footer>
+
+<script>
+    function toggleSection(headerEl) {
+        headerEl.closest('.section').classList.toggle('collapsed');
+    }
+</script>
+
+</body>
+</html>
