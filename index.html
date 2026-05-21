@@ -1718,17 +1718,8 @@
     });
     tbody.addEventListener('change', e => {
       const t = e.target;
-      if (!t || !t.dataset || !t.dataset.overlay) return;
-      const trTask = t.closest('tr.row-from-task');
-      const trMan = t.closest('tr.row-manual-delivery');
-      if (trTask && trTask.dataset.taskCompleted === '1') return;
-      if (trTask) schedulePersistTaskOverlay(trTask);
-      else if (trMan) schedulePersistDelivery(trMan);
-      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
-        collapseTaskPickSelect(t);
-      }
-      // time_slot: selectで午前/午後が選択されたとき即時確定
-      if (t.classList.contains('task-timeslot-select')) {
+      // time_slot: selectで午前/午後/自由入力が選択されたとき（data-overlay属性がないので先に処理）
+      if (t.classList && t.classList.contains('task-timeslot-select')) {
         const wrap = t.closest('[data-pick-wrap="time_slot"]');
         if (!wrap) return;
         const trTask2 = wrap.closest('tr.row-from-task');
@@ -1745,6 +1736,16 @@
           if (trTask2) schedulePersistTaskOverlay(trTask2);
           else if (trMan2) schedulePersistDelivery(trMan2);
         }
+        return;
+      }
+      if (!t || !t.dataset || !t.dataset.overlay) return;
+      const trTask = t.closest('tr.row-from-task');
+      const trMan = t.closest('tr.row-manual-delivery');
+      if (trTask && trTask.dataset.taskCompleted === '1') return;
+      if (trTask) schedulePersistTaskOverlay(trTask);
+      else if (trMan) schedulePersistDelivery(trMan);
+      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
+        collapseTaskPickSelect(t);
       }
     });
     tbody.addEventListener('blur', e => {
