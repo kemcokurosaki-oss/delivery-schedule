@@ -2369,7 +2369,22 @@
      'f-mfg-rep','f-note'].forEach(id => {
       document.getElementById(id).value = '';
     });
+    const customInp = document.getElementById('f-time-slot-custom');
+    if (customInp) { customInp.value = ''; customInp.style.display = 'none'; }
     hideModalAutofillHints();
+  }
+
+  function toggleModalTimeslotCustom() {
+    const sel = document.getElementById('f-time-slot');
+    const inp = document.getElementById('f-time-slot-custom');
+    if (!sel || !inp) return;
+    if (sel.value === '__custom__') {
+      inp.style.display = '';
+      inp.focus();
+    } else {
+      inp.style.display = 'none';
+      inp.value = '';
+    }
   }
 
   function hideModalAutofillHints() {
