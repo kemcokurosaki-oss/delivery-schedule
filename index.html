@@ -1724,19 +1724,52 @@
       if (trTask && trTask.dataset.taskCompleted === '1') return;
       if (trTask) schedulePersistTaskOverlay(trTask);
       else if (trMan) schedulePersistDelivery(trMan);
-      if ((t.tagName === 'SELECT' || t.tagName === 'INPUT') && t.classList.contains('task-pick-control')) {
+      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
         collapseTaskPickSelect(t);
+      }
+      // time_slot: selectで午前/午後が選択されたとき即時確定
+      if (t.classList.contains('task-timeslot-select')) {
+        const wrap = t.closest('[data-pick-wrap="time_slot"]');
+        if (!wrap) return;
+        const trTask2 = wrap.closest('tr.row-from-task');
+        const trMan2 = wrap.closest('tr.row-manual-delivery');
+        if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
+        const custom = wrap.querySelector('.task-timeslot-custom');
+        const hidden = wrap.querySelector('input[type="hidden"][data-overlay="time_slot"]');
+        if (t.value === '__custom__') {
+          if (custom) { custom.style.display = ''; custom.focus(); }
+        } else {
+          if (hidden) hidden.value = t.value;
+          if (custom) { custom.style.display = 'none'; custom.value = ''; }
+          collapseTimeslotEditor(wrap);
+          if (trTask2) schedulePersistTaskOverlay(trTask2);
+          else if (trMan2) schedulePersistDelivery(trMan2);
+        }
       }
     });
     tbody.addEventListener('blur', e => {
       const t = e.target;
+      // time_slot: 自由入力inputのblur
+      if (t.classList && t.classList.contains('task-timeslot-custom')) {
+        const wrap = t.closest('[data-pick-wrap="time_slot"]');
+        if (!wrap) return;
+        const trTask2 = wrap.closest('tr.row-from-task');
+        const trMan2 = wrap.closest('tr.row-manual-delivery');
+        if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
+        const hidden = wrap.querySelector('input[type="hidden"][data-overlay="time_slot"]');
+        if (hidden) hidden.value = t.value.trim();
+        collapseTimeslotEditor(wrap);
+        if (trTask2) schedulePersistTaskOverlay(trTask2);
+        else if (trMan2) schedulePersistDelivery(trMan2);
+        return;
+      }
       if (!t || !t.dataset || !t.dataset.overlay) return;
       const trTask = t.closest('tr.row-from-task');
       const trMan = t.closest('tr.row-manual-delivery');
       const tr = trTask || trMan;
       if (!tr) return;
       if (trTask && trTask.dataset.taskCompleted === '1') return;
-      if ((t.tagName === 'SELECT' || t.tagName === 'INPUT') && t.classList.contains('task-pick-control')) {
+      if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
         collapseTaskPickSelect(t);
         if (trTask) schedulePersistTaskOverlay(trTask);
         else if (trMan) schedulePersistDelivery(trMan);
