@@ -2389,7 +2389,7 @@
     const payload = {
       date:           date,
       type:           type,
-      time_slot:      document.getElementById('f-time-slot').value || null,
+      time_slot:      (() => { const s = document.getElementById('f-time-slot'); return s.value === '__custom__' ? (document.getElementById('f-time-slot-custom').value.trim() || null) : (s.value || null); })(),
       status:         document.getElementById('f-status').value || null,
       project_number: document.getElementById('f-project-number').value || null,
       machine_unit:   document.getElementById('f-machine-unit').value || null,
