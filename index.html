@@ -1789,10 +1789,10 @@
           ghost.blur();
           return;
         }
-        const pickInp = e.target.closest('input.task-pick-control');
-        if (pickInp && tbody.contains(pickInp)) {
+        const tsCustom = e.target.closest('.task-timeslot-custom');
+        if (tsCustom && tbody.contains(tsCustom)) {
           e.preventDefault();
-          pickInp.blur();
+          tsCustom.blur();
           return;
         }
       }
