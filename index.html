@@ -1413,16 +1413,18 @@
     if (!wrap) return;
     const pick = wrap.getAttribute('data-pick-wrap');
     const sel = wrap.querySelector('select.task-pick-control');
+    const inp = wrap.querySelector('input.task-pick-control');
+    const ctrl = sel || inp;
     const btn = wrap.querySelector('.task-pick-display');
-    if (!sel || !btn) return;
+    if (!ctrl || !btn) return;
     if (pick === 'type') {
-      const v = (sel.value || '').trim();
+      const v = (ctrl.value || '').trim();
       btn.innerHTML = v === '入荷' || v === '出荷' ? typeBadge(v) : '<span class="task-pick-placeholder">—</span>';
     } else if (pick === 'time_slot') {
-      const v = (sel.value || '').trim();
+      const v = (ctrl.value || '').trim();
       btn.innerHTML = v ? escapeAttr(v) : '<span class="task-pick-placeholder">—</span>';
     } else if (pick === 'status') {
-      const isK = sel.value === '確定';
+      const isK = ctrl.value === '確定';
       btn.innerHTML = isK
         ? '<span class="status-badge kakutei">確定</span>'
         : '<span class="status-badge yotei">予定</span>';
@@ -1430,7 +1432,8 @@
   }
 
   function collapseTaskPickSelect(sel) {
-    if (!sel || sel.tagName !== 'SELECT' || !sel.classList.contains('task-pick-control')) return;
+    if (!sel || !sel.classList.contains('task-pick-control')) return;
+    if (sel.tagName !== 'SELECT' && sel.tagName !== 'INPUT') return;
     const wrap = sel.closest('[data-pick-wrap]');
     if (!wrap) return;
     syncPickDisplay(wrap);
