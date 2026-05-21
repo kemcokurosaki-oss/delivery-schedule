@@ -1381,15 +1381,12 @@
       return `<span class="task-time-readonly" title="工程表で完了済みのため一覧からは変更できません">${disp}</span>`;
     }
     const v = (entry.time_slot || '').trim();
-    const opts = ['午前', '午後', '昼前後'].map(o =>
-      `<option value="${o}"${v === o ? ' selected' : ''}>${o}</option>`
-    ).join('');
     const disp = v
       ? escapeAttr(v)
       : '<span class="task-pick-placeholder">—</span>';
     return `<div class="task-pick-wrap" data-pick-wrap="time_slot">
       <button type="button" class="task-pick-display task-pick-time" aria-label="時間帯をダブルクリックで編集">${disp}</button>
-      <select data-overlay="time_slot" class="task-pick-control" style="display:none"><option value=""></option>${opts}</select>
+      <input type="text" data-overlay="time_slot" class="task-pick-control task-pick-control-input" list="timeslot-suggestions" placeholder="午前/午後" value="${escapeAttr(v)}" style="display:none;">
     </div>`;
   }
 
