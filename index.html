@@ -1672,12 +1672,13 @@
       const wrap = btn.closest('[data-pick-wrap]');
       const tr = wrap && (wrap.closest('tr.row-from-task') || wrap.closest('tr.row-manual-delivery'));
       if (!wrap || !tr) return;
-      const sel = wrap.querySelector('select.task-pick-control');
+      const sel = wrap.querySelector('select.task-pick-control, input.task-pick-control');
       if (!sel) return;
       e.preventDefault();
       btn.style.display = 'none';
       sel.style.display = '';
       sel.focus();
+      if (sel.tagName === 'INPUT') { try { sel.select(); } catch(_) {} }
     });
     tbody.addEventListener('change', e => {
       const t = e.target;
