@@ -1699,8 +1699,12 @@
         editor.style.display = 'flex';
         const tsSel = editor.querySelector('.task-timeslot-select');
         const tsCustom = editor.querySelector('.task-timeslot-custom');
-        if (tsSel && tsSel.value === '__custom__' && tsCustom) tsCustom.focus();
-        else if (tsSel) tsSel.focus();
+        if (tsSel && tsSel.value === '__custom__' && tsCustom) {
+          tsCustom.focus();
+        } else if (tsSel) {
+          tsSel.value = '__open_sentinel__';
+          tsSel.focus();
+        }
         return;
       }
       const sel = wrap.querySelector('select.task-pick-control');
