@@ -1558,12 +1558,6 @@
       taskOverlaysMap.set(String(taskId), saved || { ...payload });
     }
 
-    if (tr.isConnected) {
-      requestAnimationFrame(() => {
-        tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      });
-    }
-
     const meta = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
     const overlayRow = taskOverlaysMap.get(String(taskId));
     if (meta) {
