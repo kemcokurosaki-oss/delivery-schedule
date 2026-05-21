@@ -1743,6 +1743,20 @@
     });
     tbody.addEventListener('blur', e => {
       const t = e.target;
+      // time_slot: selectのblur（—を再選択した場合など変更イベントが発火しないケース対応）
+      if (t.classList && t.classList.contains('task-timeslot-select')) {
+        const wrap = t.closest('[data-pick-wrap="time_slot"]');
+        if (!wrap) return;
+        // フォーカス先が同じラップ内（custom inputへの切替）なら閉じない
+        if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
+        const trTask2 = wrap.closest('tr.row-from-task');
+        const trMan2 = wrap.closest('tr.row-manual-delivery');
+        if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
+        collapseTimeslotEditor(wrap);
+        if (trTask2) schedulePersistTaskOverlay(trTask2);
+        else if (trMan2) schedulePersistDelivery(trMan2);
+        return;
+      }
       // time_slot: 自由入力inputのblur
       if (t.classList && t.classList.contains('task-timeslot-custom')) {
         const wrap = t.closest('[data-pick-wrap="time_slot"]');
