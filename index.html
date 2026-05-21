@@ -874,8 +874,11 @@
       transform: translateY(-50%);
     }
     #guide_btn:hover { background: #1565c0; color: #fff; }
-    .task-timeslot-editor { display: none; flex-direction: column; align-items: stretch; gap: 2px; }
-    .task-timeslot-custom { font: inherit; border: 1px solid #ccc; border-radius: 3px; padding: 1px 3px; box-sizing: border-box; width: 100%; text-align: center; }
+    .task-timeslot-editor { display: none; flex-direction: column; align-items: stretch; gap: 2px; width: 100%; overflow: hidden; }
+    .task-timeslot-select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; font: inherit; }
+    .task-timeslot-custom { font: inherit; border: 1px solid #ccc; border-radius: 3px; padding: 1px 3px; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; text-align: center; }
+    tr.row-from-task .task-pick-wrap[data-pick-wrap="time_slot"],
+    tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="time_slot"] { width: 100%; max-width: 100%; }
     #help_tips_container {
       display: none;
       position: fixed;
