@@ -1697,13 +1697,24 @@
       const wrap = btn.closest('[data-pick-wrap]');
       const tr = wrap && (wrap.closest('tr.row-from-task') || wrap.closest('tr.row-manual-delivery'));
       if (!wrap || !tr) return;
-      const sel = wrap.querySelector('select.task-pick-control, input.task-pick-control');
+      if (wrap.getAttribute('data-pick-wrap') === 'time_slot') {
+        const editor = wrap.querySelector('.task-timeslot-editor');
+        if (!editor) return;
+        e.preventDefault();
+        btn.style.display = 'none';
+        editor.style.display = 'flex';
+        const tsSel = editor.querySelector('.task-timeslot-select');
+        const tsCustom = editor.querySelector('.task-timeslot-custom');
+        if (tsSel && tsSel.value === '__custom__' && tsCustom) tsCustom.focus();
+        else if (tsSel) tsSel.focus();
+        return;
+      }
+      const sel = wrap.querySelector('select.task-pick-control');
       if (!sel) return;
       e.preventDefault();
       btn.style.display = 'none';
       sel.style.display = '';
       sel.focus();
-      if (sel.tagName === 'INPUT') { try { sel.select(); } catch(_) {} }
     });
     tbody.addEventListener('change', e => {
       const t = e.target;
