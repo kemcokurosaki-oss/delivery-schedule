@@ -211,30 +211,16 @@ function buildDayEntries(dateStr, deliveries, taskShipments) {
 }
 
 function formatEntryLine(entry) {
-  const span =
-    entry._fromTask && entry._spanStart && entry._spanEnd && entry._spanStart !== entry._spanEnd
-      ? `（出荷期間 ${entry._spanStart}～${entry._spanEnd}）`
-      : '';
+  const typeStatus = `${entry.type || ''}${entry.status ? `（${entry.status}）` : ''}`;
   const parts = [
-    entry.type || '',
-    entry.time_slot ? `時間帯:${entry.time_slot}` : null,
-    entry.status ? `状態:${entry.status}` : null,
-    entry.project_number ? `工番:${entry.project_number}` : null,
-    entry.machine_unit ? `機械:${entry.machine_unit}` : null,
-    entry.product_name ? `品名:${entry.product_name}` : null,
-    entry.quantity ? `数量:${entry.quantity}` : null,
-    entry.sales_rep ? `営業:${entry.sales_rep}` : null,
-    entry.mfg_rep ? `製造資材:${entry.mfg_rep}` : null,
-    entry.from_to ? `From/To:${entry.from_to}` : null,
-    entry.transport ? `輸送:${entry.transport}` : null,
-    entry.size ? `サイズ:${entry.size}` : null,
-    entry.weight ? `重量:${entry.weight}` : null,
-    entry.unit ? `単位:${entry.unit}` : null,
-    entry.assembly_rep ? `組立:${entry.assembly_rep}` : null,
-    entry.note ? `備考:${entry.note}` : null,
-    entry._fromTask ? `メモ:工場出荷${span}` : null,
+    typeStatus || null,
+    entry.time_slot || null,
+    entry.project_number || null,
+    entry.machine_unit || null,
+    entry.product_name || null,
+    entry.sales_rep || entry.mfg_rep || null,
   ].filter(Boolean);
-  return `  - ${parts.join(' / ')}`;
+  return `  - ${parts.join(' ')}`;
 }
 
 function weekLabelYmd(ymd) {
