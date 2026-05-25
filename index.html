@@ -1461,7 +1461,7 @@
       return `<span class="task-time-readonly" title="工程表で完了済みのため一覧からは変更できません">${disp}</span>`;
     }
     const v = (entry.time_slot || '').trim();
-    const fixedOpts = ['午前', '午後'];
+    const fixedOpts = ['午前', '午後', '未定'];
     const isFixed = fixedOpts.includes(v);
     const selectVal = isFixed ? v : (v ? '__custom__' : '');
     const opts = fixedOpts.map(o =>
