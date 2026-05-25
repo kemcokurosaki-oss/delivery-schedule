@@ -2225,7 +2225,7 @@
     while (y < endYear || (y === endYear && m <= endMonth)) {
       // 月ヘッダー行
       const mhTr = document.createElement('tr');
-      mhTr.innerHTML = `<td colspan="14" class="month-header">${y}年 ${m}月</td>`;
+      mhTr.innerHTML = `<td colspan="13" class="month-header">${y}年 ${m}月</td>`;
       tbody.appendChild(mhTr);
 
       const lastDay = new Date(y, m, 0).getDate();
