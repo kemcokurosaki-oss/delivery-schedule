@@ -211,14 +211,15 @@ function buildDayEntries(dateStr, deliveries, taskShipments) {
 }
 
 function formatEntryLine(entry) {
-  const typeStatus = `${entry.type || ''}${entry.status ? `（${entry.status}）` : ''}`;
+  const typeStatus = `${entry.type || ''}${entry.status ? `(${entry.status})` : ''}`;
   const parts = [
     typeStatus || null,
     entry.time_slot || null,
     entry.project_number || null,
     entry.machine_unit || null,
     entry.product_name || null,
-    entry.sales_rep || entry.mfg_rep || null,
+    entry.sales_rep || null,
+    entry.mfg_rep || null,
   ].filter(Boolean);
   return `  - ${parts.join(' ')}`;
 }
