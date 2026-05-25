@@ -1408,8 +1408,10 @@
     const idx = days.indexOf(disp);
     if (idx < 0) return '';
     const n = idx + 1;
+    const CIRCLE_NUMS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩','⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
+    const ch = CIRCLE_NUMS[n - 1] || `(${n})`;
     const title = `出荷期間 ${entry._spanStart} ～ ${entry._spanEnd}（全${total}日）／この行は${n}日目`;
-    return `<span class="task-span-day-badge" title="${escapeAttr(title)}">${n}/${total}日</span>`;
+    return `<span class="task-span-day-badge" title="${escapeAttr(title)}">${ch}</span>`;
   }
 
   /** 入荷/出荷セル：内側グリッドでバッジ位置を統一し、塊を列中央に */
