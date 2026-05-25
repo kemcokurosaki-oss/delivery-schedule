@@ -6,8 +6,24 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: "Meiryo", sans-serif; font-size: 12px; background: #f5f5f5; padding: 16px; }
-    h2 { font-size: 14px; margin: 16px 0 6px; color: #1B3A6B; border-left: 4px solid #1B3A6B; padding-left: 8px; }
+    h2 { font-size: 14px; margin: 20px 0 6px; color: #1B3A6B; border-left: 4px solid #1B3A6B; padding-left: 8px; }
     p.note { font-size: 12px; color: #555; margin-bottom: 8px; line-height: 1.6; }
+
+    /* トグルスイッチ */
+    .toggle-bar {
+      display: flex; align-items: center; gap: 12px;
+      background: #fff; border: 1px solid #ccc; border-radius: 8px;
+      padding: 10px 16px; margin-bottom: 20px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .toggle-bar label { font-size: 13px; font-weight: 700; color: #333; }
+    .toggle-bar .tog-opt {
+      padding: 4px 12px; border-radius: 20px; border: 1px solid #bbb;
+      cursor: pointer; font-size: 12px; font-family: inherit;
+      background: #f5f5f5; color: #555; transition: all 0.15s;
+    }
+    .toggle-bar .tog-opt.active { background: #1B3A6B; color: #fff; border-color: #1B3A6B; font-weight: 700; }
+    .toggle-bar .tog-desc { font-size: 11px; color: #777; margin-left: 4px; }
 
     table {
       border-collapse: separate; border-spacing: 0;
@@ -53,7 +69,16 @@
       line-height: 1.2; overflow: hidden; text-overflow: ellipsis;
       pointer-events: none;
     }
-    .task-span-day-badge { font-weight: 500; color: #111; line-height: 1.2; letter-spacing: 0.02em; }
+    /* N/M日 スタイル（現行） */
+    .span-badge-fraction {
+      font-weight: 500; color: #111; line-height: 1.2; letter-spacing: 0.02em;
+      font-size: 10px;
+    }
+    /* ①②③ スタイル（新案） */
+    .span-badge-circle {
+      font-size: 13px; line-height: 1; color: #2E7D32; font-weight: 900;
+    }
+
     .type-badge {
       display: inline-block; padding: 2px 6px; border-radius: 3px;
       font-size: 11px; font-weight: 700; white-space: nowrap;
@@ -68,17 +93,28 @@
     .status-badge.yotei  { background: #f5f5f5; color: #757575; border: 1px solid #e0e0e0; }
     .status-badge.kakutei { background: #c62828; color: #fff; border: 1px solid #b71c1c; font-weight: 800; }
 
-    .section-label {
-      font-size: 11px; color: white; background: #607d8b;
-      padding: 3px 8px; display: inline-block; border-radius: 3px; margin-bottom: 4px;
-    }
+    /* 比較レイアウト */
+    .compare-wrap { display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start; margin-bottom: 8px; }
+    .compare-block { flex: 1; min-width: 340px; }
+    .compare-block h3 { font-size: 13px; color: #333; margin-bottom: 6px; padding: 4px 8px; border-radius: 4px; }
+    .compare-block.old h3 { background: #f5f5f5; }
+    .compare-block.new h3 { background: #e8f5e9; }
   </style>
 </head>
 <body>
 
-<h2>① 1日のみの出荷（通常）</h2>
+<!-- トグルスイッチ -->
+<div class="toggle-bar">
+  <label>日数表示スタイル：</label>
+  <button class="tog-opt active" id="tog-fraction" onclick="setStyle('fraction')">1/3日（現行）</button>
+  <button class="tog-opt" id="tog-circle" onclick="setStyle('circle')">①②③（新案）</button>
+  <span class="tog-desc" id="tog-desc">← クリックで切り替え</span>
+</div>
+
+<!-- ① 3日間スパン -->
+<h2>3日間にまたがる出荷</h2>
 <p class="note">
-  <code>start_date = end_date</code> の場合。入荷/出荷列にはバッジのみが中央表示され、日数表示は出ません。
+  <code>start_date = 2026-05-26</code>、<code>end_date = 2026-05-28</code>（全3日）
 </p>
 <table>
   <thead><tr>
@@ -90,31 +126,13 @@
     <th style="width:160px;">製品</th>
     <th style="width:80px;">備考</th>
   </tr></thead>
-  <tbody>
-    <tr class="weekday row-from-task">
-      <td class="td-date">5/26</td>
-      <td class="td-dow" style="color:#333;">火</td>
-      <td class="td-type-cell">
-        <!-- 1日のみ：バッジのみ、日数なし -->
-        <div class="type-cell-row"><div class="type-cell-inner">
-          <span class="type-cell-badge"><span class="type-badge shukka">出荷</span></span>
-          <span class="type-cell-right"></span>
-        </div></div>
-      </td>
-      <td style="text-align:center;">午前</td>
-      <td style="text-align:center;"><span class="status-badge kakutei">確定</span></td>
-      <td style="text-align:center;">8810</td>
-      <td>ジーローターポンプ</td>
-      <td>工場出荷（1日）</td>
-    </tr>
-  </tbody>
+  <tbody id="body-3day"></tbody>
 </table>
 
-<h2>② 3日間にまたがる出荷（複数日スパン）</h2>
+<!-- ② 5日間スパン（土日またぎ） -->
+<h2>5日間にまたがる出荷（土日またぎ）</h2>
 <p class="note">
-  <code>start_date = 2026-05-26</code>、<code>end_date = 2026-05-28</code> の場合。<br>
-  行は日付ごとに1行ずつ展開され、入荷/出荷列の<strong>右側</strong>に <code>1/3日</code>〜<code>3/3日</code> が表示されます。<br>
-  日付・曜日セルは先頭行のみ <code>rowspan="3"</code> でまとめられています。
+  <code>start_date = 2026-05-28</code>（木）〜 <code>end_date = 2026-06-01</code>（月）（全5日）
 </p>
 <table>
   <thead><tr>
@@ -126,78 +144,11 @@
     <th style="width:160px;">製品</th>
     <th style="width:80px;">備考</th>
   </tr></thead>
-  <tbody>
-    <!-- 1日目 -->
-    <tr class="weekday row-from-task">
-      <td class="td-date" rowspan="3">5/26〜28</td>
-      <td class="td-dow" rowspan="3" style="color:#333;">火〜木</td>
-      <td class="td-type-cell">
-        <div class="type-cell-row"><div class="type-cell-inner">
-          <span class="type-cell-badge"><span class="type-badge shukka">出荷</span></span>
-          <span class="type-cell-right">
-            <span class="task-span-day-badge" title="出荷期間 2026-05-26 ～ 2026-05-28（全3日）／この行は1日目">1/3日</span>
-          </span>
-        </div></div>
-      </td>
-      <td style="text-align:center;">午前</td>
-      <td style="text-align:center;"><span class="status-badge kakutei">確定</span></td>
-      <td style="text-align:center;">8810</td>
-      <td>ジーローターポンプ</td>
-      <td>工場出荷（1日目）</td>
-    </tr>
-    <!-- 2日目 -->
-    <tr class="weekday row-from-task">
-      <td class="td-type-cell">
-        <div class="type-cell-row"><div class="type-cell-inner">
-          <span class="type-cell-badge"><span class="type-badge shukka">出荷</span></span>
-          <span class="type-cell-right">
-            <span class="task-span-day-badge" title="出荷期間 2026-05-26 ～ 2026-05-28（全3日）／この行は2日目">2/3日</span>
-          </span>
-        </div></div>
-      </td>
-      <td style="text-align:center;">午後</td>
-      <td style="text-align:center;"><span class="status-badge yotei">予定</span></td>
-      <td style="text-align:center;">8810</td>
-      <td>ジーローターポンプ</td>
-      <td>工場出荷（2日目）</td>
-    </tr>
-    <!-- 3日目 -->
-    <tr class="weekday row-from-task">
-      <td class="td-type-cell">
-        <div class="type-cell-row"><div class="type-cell-inner">
-          <span class="type-cell-badge"><span class="type-badge shukka">出荷</span></span>
-          <span class="type-cell-right">
-            <span class="task-span-day-badge" title="出荷期間 2026-05-26 ～ 2026-05-28（全3日）／この行は3日目">3/3日</span>
-          </span>
-        </div></div>
-      </td>
-      <td style="text-align:center;"></td>
-      <td style="text-align:center;"><span class="status-badge yotei">予定</span></td>
-      <td style="text-align:center;">8810</td>
-      <td>ジーローターポンプ</td>
-      <td>工場出荷（3日目）</td>
-    </tr>
-  </tbody>
+  <tbody id="body-5day"></tbody>
 </table>
 
-<h2>③ 土日またぎの5日間スパン</h2>
-<p class="note">
-  木曜〜翌月曜の5日間例。土・日は行色が変わりますが、工程表連携行（row-from-task）は白地優先のため背景は白のままです。
-</p>
-<table>
-  <thead><tr>
-    <th style="width:55px;">日付</th><th style="width:28px;">曜</th>
-    <th class="th-col-type">入荷/出荷</th>
-    <th style="width:75px;">時間帯</th>
-    <th style="width:65px;">予定状態</th>
-    <th style="width:70px;">工事番号</th>
-    <th style="width:160px;">製品</th>
-    <th style="width:80px;">備考</th>
-  </tr></thead>
-  <tbody id="span5-body"></tbody>
-</table>
-
-<h2>④ 1日のみの入荷</h2>
+<!-- ③ 1日のみ（比較用） -->
+<h2>1日のみ（変化なし）</h2>
 <table>
   <thead><tr>
     <th style="width:55px;">日付</th><th style="width:28px;">曜</th>
@@ -214,70 +165,106 @@
       <td class="td-dow" style="color:#333;">水</td>
       <td class="td-type-cell">
         <div class="type-cell-row"><div class="type-cell-inner">
-          <span class="type-cell-badge"><span class="type-badge nyuuka">入荷</span></span>
+          <span class="type-cell-badge"><span class="type-badge shukka">出荷</span></span>
           <span class="type-cell-right"></span>
         </div></div>
       </td>
-      <td style="text-align:center;">午後</td>
-      <td style="text-align:center;"><span class="status-badge yotei">予定</span></td>
-      <td style="text-align:center;">9001</td>
-      <td>長納期部品</td>
-      <td>—</td>
+      <td style="text-align:center;">午前</td>
+      <td style="text-align:center;"><span class="status-badge kakutei">確定</span></td>
+      <td style="text-align:center;">8810</td>
+      <td>ジーローターポンプ</td>
+      <td>1日のみ → 何も表示なし</td>
     </tr>
   </tbody>
 </table>
 
-<p style="font-size:11px; color:#888; margin-top:8px;">
-  ※ ③の行は JS で動的生成しています。バッジにマウスオーバーすると出荷期間の tooltip が表示されます。
-</p>
-
 <script>
-  // ③ の5日間スパンを動的生成（本番コードと同じロジック）
-  const days = [
-    { d: '5/29', dow: '木', dowN: 4, ymd: '2026-05-29' },
-    { d: '5/30', dow: '金', dowN: 5, ymd: '2026-05-30' },
-    { d: '5/31', dow: '土', dowN: 6, ymd: '2026-05-31' },
-    { d: '6/1',  dow: '日', dowN: 0, ymd: '2026-06-01' },
-    { d: '6/2',  dow: '月', dowN: 1, ymd: '2026-06-02' },
-  ];
-  const total = days.length;
-  const spanStart = '2026-05-29';
-  const spanEnd   = '2026-06-02';
-  const tooltip = `出荷期間 ${spanStart} ～ ${spanEnd}（全${total}日）`;
+  // ① で使える囲み数字（Unicode）
+  const CIRCLE_NUMS = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩',
+                       '⑪','⑫','⑬','⑭','⑮','⑯','⑰','⑱','⑲','⑳'];
 
-  const tbody = document.getElementById('span5-body');
-  days.forEach((day, idx) => {
-    const tr = document.createElement('tr');
-    const rowCls = day.dowN === 0 ? 'sunday' : day.dowN === 6 ? 'saturday' : 'weekday';
-    tr.className = rowCls + ' row-from-task';
+  let currentStyle = 'fraction';
 
-    const dateCell = idx === 0
-      ? `<td class="td-date" rowspan="${total}">5/29〜6/2</td>
-         <td class="td-dow" rowspan="${total}" style="color:#333;">木〜月</td>`
-      : '';
+  const datasets = {
+    '3day': [
+      { d: '5/26', dow: '火', dowN: 2, ymd: '2026-05-26', slot: '午前', status: 'kakutei', statusLabel: '確定' },
+      { d: '5/27', dow: '水', dowN: 3, ymd: '2026-05-27', slot: '午後', status: 'yotei', statusLabel: '予定' },
+      { d: '5/28', dow: '木', dowN: 4, ymd: '2026-05-28', slot: '',     status: 'yotei', statusLabel: '予定' },
+    ],
+    '5day': [
+      { d: '5/28', dow: '木', dowN: 4, ymd: '2026-05-28', slot: '',    status: 'yotei', statusLabel: '予定' },
+      { d: '5/29', dow: '金', dowN: 5, ymd: '2026-05-29', slot: '午前', status: 'kakutei', statusLabel: '確定' },
+      { d: '5/30', dow: '土', dowN: 6, ymd: '2026-05-30', slot: '',    status: 'yotei', statusLabel: '予定' },
+      { d: '5/31', dow: '日', dowN: 0, ymd: '2026-05-31', slot: '',    status: 'yotei', statusLabel: '予定' },
+      { d: '6/1',  dow: '月', dowN: 1, ymd: '2026-06-01', slot: '午後', status: 'yotei', statusLabel: '予定' },
+    ],
+  };
 
-    const dowColor = day.dowN === 0 ? '#c62828' : day.dowN === 6 ? '#1565C0' : '#333';
-    const n = idx + 1;
-    const titleAttr = `${tooltip}／この行は${n}日目`;
+  const spanLabels = {
+    '3day': { start: '2026-05-26', end: '2026-05-28', dateDisp: '5/26〜28', dowDisp: '火〜木' },
+    '5day': { start: '2026-05-28', end: '2026-06-01', dateDisp: '5/28〜6/1', dowDisp: '木〜月' },
+  };
 
-    tr.innerHTML = `
-      ${dateCell}
-      <td class="td-type-cell">
-        <div class="type-cell-row"><div class="type-cell-inner">
-          <span class="type-cell-badge"><span class="type-badge shukka">出荷</span></span>
-          <span class="type-cell-right">
-            <span class="task-span-day-badge" title="${titleAttr}">${n}/${total}日</span>
-          </span>
-        </div></div>
-      </td>
-      <td style="text-align:center;">${day.dowN >= 6 ? '休日' : ''}</td>
-      <td style="text-align:center;"><span class="status-badge yotei">予定</span></td>
-      <td style="text-align:center;">9100</td>
-      <td>大型プレス機</td>
-      <td>${n}日目 (${day.d} ${day.dow})</td>
-    `;
-    tbody.appendChild(tr);
-  });
+  function makeBadgeHtml(n, total, spanStart, spanEnd, style) {
+    const tooltipText = `出荷期間 ${spanStart} ～ ${spanEnd}（全${total}日）／この行は${n}日目`;
+    if (style === 'circle') {
+      const ch = CIRCLE_NUMS[n - 1] || `(${n})`;
+      return `<span class="span-badge-circle" title="${tooltipText}">${ch}</span>`;
+    } else {
+      return `<span class="span-badge-fraction" title="${tooltipText}">${n}/${total}日</span>`;
+    }
+  }
+
+  function renderTable(key, style) {
+    const days = datasets[key];
+    const total = days.length;
+    const lbl = spanLabels[key];
+    const tbody = document.getElementById('body-' + key);
+    tbody.innerHTML = '';
+
+    days.forEach((day, idx) => {
+      const tr = document.createElement('tr');
+      const rowCls = day.dowN === 0 ? 'sunday' : day.dowN === 6 ? 'saturday' : 'weekday';
+      tr.className = rowCls + ' row-from-task';
+
+      const dateCell = idx === 0
+        ? `<td class="td-date" rowspan="${total}">${lbl.dateDisp}</td>
+           <td class="td-dow" rowspan="${total}" style="color:#333;">${lbl.dowDisp}</td>`
+        : '';
+
+      const badge = makeBadgeHtml(idx + 1, total, lbl.start, lbl.end, style);
+
+      tr.innerHTML = `
+        ${dateCell}
+        <td class="td-type-cell">
+          <div class="type-cell-row"><div class="type-cell-inner">
+            <span class="type-cell-badge"><span class="type-badge shukka">出荷</span></span>
+            <span class="type-cell-right">${badge}</span>
+          </div></div>
+        </td>
+        <td style="text-align:center;">${day.slot}</td>
+        <td style="text-align:center;"><span class="status-badge ${day.status}">${day.statusLabel}</span></td>
+        <td style="text-align:center;">9100</td>
+        <td>大型プレス機</td>
+        <td>${idx + 1}日目（${day.d} ${day.dow}）</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function setStyle(style) {
+    currentStyle = style;
+    document.getElementById('tog-fraction').classList.toggle('active', style === 'fraction');
+    document.getElementById('tog-circle').classList.toggle('active', style === 'circle');
+    document.getElementById('tog-desc').textContent =
+      style === 'circle' ? '① ② ③ … は Unicode の囲み数字（⑳まで対応）' : '← クリックで切り替え';
+    renderTable('3day', style);
+    renderTable('5day', style);
+  }
+
+  // 初期描画
+  renderTable('3day', 'fraction');
+  renderTable('5day', 'fraction');
 </script>
 </body>
 </html>
