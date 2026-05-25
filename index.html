@@ -1575,7 +1575,6 @@
     return {
       time_slot: get('time_slot'),
       status: get('status'),
-      quantity: get('quantity'),
       mfg_rep: get('mfg_rep'),
       product_name: get('product_name'),
       note: get('note'),
@@ -1584,7 +1583,7 @@
 
   /** 補完が実質空なら DB 行を削除する（既定の「予定」のみ等） */
   function shouldDeleteOverlayRow(data) {
-    const textKeys = ['time_slot', 'quantity', 'mfg_rep', 'product_name', 'note'];
+    const textKeys = ['time_slot', 'mfg_rep', 'product_name', 'note'];
     if (textKeys.some(k => data[k])) return false;
     if (data.status === '確定') return false;
     return true;
