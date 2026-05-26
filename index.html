@@ -1452,11 +1452,12 @@
   /** 時間帯: 通常はテキスト表示、ダブルクリックでプルダウン */
   function taskTimeSlotPickCell(entry) {
     if (entry._taskIsCompleted) {
-      const v = (entry.time_slot || '').trim();
-      const disp = v ? escapeAttr(v) : '—';
-      return `<span class="task-time-readonly" title="工程表で完了済みのため一覧からは変更できません">${disp}</span>`;
+      const rawV = (entry.time_slot || '').trim();
+      const v = !rawV ? '未定' : rawV;
+      return `<span class="task-time-readonly" title="工程表で完了済みのため一覧からは変更できません">${escapeAttr(v)}</span>`;
     }
-    const v = (entry.time_slot || '').trim();
+    const rawV = (entry.time_slot || '').trim();
+    const v = (!rawV && entry._fromTask) ? '未定' : rawV;
     const fixedOpts = ['午前', '午後', '未定'];
     const isFixed = fixedOpts.includes(v);
     const selectVal = isFixed ? v : (v ? '__custom__' : '');
