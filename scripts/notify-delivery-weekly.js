@@ -211,10 +211,13 @@ function buildDayEntries(dateStr, deliveries, taskShipments) {
 }
 
 function formatEntryLine(entry) {
+  const timeDisplay = entry.time_slot
+    ? (entry.time_slot === '未定' ? '時間未定' : entry.time_slot)
+    : null;
   const typeStatus = `${entry.type || ''}${entry.status ? `(${entry.status})` : ''}`;
   const parts = [
     typeStatus || null,
-    entry.time_slot || null,
+    timeDisplay,
     entry.project_number || null,
     entry.machine_unit || null,
     entry.product_name || null,
