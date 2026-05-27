@@ -211,8 +211,11 @@ function buildDayEntries(dateStr, deliveries, taskShipments) {
 }
 
 function formatEntryLine(entry) {
-  const timeDisplay = entry.time_slot
-    ? (entry.time_slot === '未定' ? '時間未定' : entry.time_slot)
+  const rawSlot = (entry.time_slot || '').trim();
+  // 工程表リンクタスクは時間未設定のとき「未定」扱い（web UI と同じルール）
+  const effectiveSlot = (!rawSlot && entry._fromTask) ? '未定' : rawSlot;
+  const timeDisplay = effectiveSlot
+    ? (effectiveSlot === '未定' ? '時間未定' : effectiveSlot)
     : null;
   const typeStatus = `${entry.type || ''}${entry.status ? `(${entry.status})` : ''}`;
   const parts = [
