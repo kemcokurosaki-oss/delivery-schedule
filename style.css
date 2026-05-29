@@ -1,0 +1,1027 @@
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: "Meiryo", "メイリオ", sans-serif;
+  font-size: 12px;
+  background: #f5f5f5;
+  color: #333;
+}
+button, input, select, textarea {
+  font-family: inherit;
+}
+
+/* ヘッダー */
+.header {
+  background: #1B3A6B;
+  color: white;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.header h1 { font-size: 16px; font-weight: 700; margin-right: 8px; }
+.nav-btn {
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.4);
+  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.nav-btn:hover { background: rgba(255,255,255,0.35); }
+.month-header {
+  background: #2860A8;
+  color: white;
+  font-weight: 700;
+  padding: 5px 10px;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+#current-month {
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 100px;
+  text-align: center;
+}
+.filter-btn {
+  padding: 4px 10px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  color: white;
+  cursor: pointer;
+  font-size: 12px;
+}
+.filter-btn.active { background: rgba(255,255,255,0.9); color: #1B3A6B; font-weight: 700; }
+.filter-btn:hover { background: rgba(255,255,255,0.3); }
+.filter-btn.active:hover { background: rgba(255,255,255,0.95); }
+
+/* ページヘッダー直下に固定（一覧の自動スクロール後も表示が残る） */
+.save-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 48px;
+  z-index: 120;
+  box-sizing: border-box;
+  max-height: 88px;
+  overflow: hidden;
+  margin: 0;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 700;
+  text-align: center;
+  line-height: 1.45;
+  pointer-events: none;
+  transform: translateY(-120%);
+  opacity: 0;
+  transition:
+    transform 0.36s cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 0.28s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+.save-banner.is-success {
+  background: #2e7d32;
+  color: #fff;
+  border-bottom: 1px solid #1b5e20;
+}
+.save-banner.is-error {
+  background: #c62828;
+  color: #fff;
+  border-bottom: 1px solid #b71c1c;
+}
+.save-banner.is-open {
+  transform: translateY(0);
+  opacity: 1;
+  padding: 12px 16px;
+}
+.save-banner.is-closing {
+  transform: translateY(-120%);
+  opacity: 0;
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.table-container {
+  padding: 0 12px 12px;
+}
+.table-gap {
+  position: sticky;
+  top: 42px;
+  height: 12px;
+  background: #f5f5f5;
+  z-index: 9;
+}
+
+table {
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+  width: 1185px;
+  background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+/* ヘッダー行 */
+thead {
+  position: sticky;
+  top: 54px;
+  z-index: 10;
+}
+thead th {
+  background: #455A64;
+  color: white;
+  padding: 6px 6px;
+  text-align: center;
+  white-space: nowrap;
+  border-top: 1px solid #37474F;
+  border-right: 1px solid #37474F;
+  border-bottom: 1px solid #37474F;
+  border-left: none;
+  font-weight: 700;
+  font-size: 11px;
+}
+thead th:first-child {
+  border-left: 1px solid #37474F;
+}
+
+/* データ行 */
+tbody tr { }
+tbody td {
+  padding: 4px 6px;
+  border-right: 1px solid #e0e0e0;
+  border-bottom: 1px solid #e0e0e0;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* 日付・曜日セル */
+.td-date {
+  text-align: center;
+  font-weight: 700;
+  font-size: 12px;
+  background: inherit;
+  border-right: 2px solid #bbb !important;
+  min-width: 70px;
+}
+.td-dow {
+  text-align: center;
+  font-weight: 700;
+  font-size: 12px;
+  border-right: 2px solid #bbb !important;
+  min-width: 30px;
+}
+
+tbody td.td-col-machine-unit,
+tbody td.td-col-sales-rep {
+  text-align: center;
+}
+
+/* 行の色分け */
+tr.sunday  { background: #fce4ec; }
+tr.saturday { background: #e3f2fd; }
+tr.holiday  { background: #fce4ec; }
+tr.weekday  { background: white; }
+/* 入出荷なしの平日のみグレー（土日祝の行色はそのまま優先） */
+tr.empty-day.weekday { background: #eeeeee; }
+
+/* 入荷/出荷インジケーター */
+.type-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.type-badge.nyuuka  { background: #fff3e0; color: #e65100; border: 1px solid #ffb74d; }
+.type-badge.shukka  { background: #e8f5e9; color: #2E7D32; border: 1px solid #a5d6a7; }
+/* 入荷/出荷：バッジは列の水平中央に固定、日数（1/3日）は右側に余裕を持って配置 */
+thead th.th-col-type,
+tbody td.td-type-cell {
+  width: 92px;
+  max-width: 92px;
+  min-width: 92px;
+  box-sizing: border-box;
+  vertical-align: middle;
+  text-align: center;
+}
+thead th.th-col-type {
+  padding: 6px 8px;
+}
+tbody td.td-type-cell {
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+.type-cell-row {
+  display: block;
+  width: 100%;
+}
+.type-cell-inner {
+  position: relative;
+  width: 100%;
+  min-height: 26px;
+  box-sizing: border-box;
+}
+/* 入荷/出荷タブ（バッジ or 手動行のプルダウン）：常にセル中央（行ごとに位置が変わらない） */
+.type-cell-inner > .type-cell-badge,
+.type-cell-inner > .task-pick-wrap[data-pick-wrap="type"] {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1;
+}
+.td-type-cell .type-cell-inner > .task-pick-wrap[data-pick-wrap="type"] {
+  min-width: 0;
+}
+.type-cell-right {
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 10px;
+  white-space: nowrap;
+  min-height: 1em;
+  text-align: right;
+  max-width: calc(50% - 2px);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+.type-cell-right .task-span-day-badge {
+  pointer-events: auto;
+  font-size: 13px;
+  font-weight: 900;
+  color: #2E7D32;
+  line-height: 1;
+}
+
+/* 予定状態バッジ（見た目は入荷/出荷の .type-badge と同寸・同タイポ） */
+.status-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.status-badge.yotei {
+  background: #f5f5f5;
+  color: #757575;
+  border: 1px solid #e0e0e0;
+  font-weight: 600;
+}
+.status-badge.kakutei {
+  background: #c62828;
+  color: #fff;
+  border: 1px solid #b71c1c;
+  font-weight: 800;
+  box-shadow: 0 1px 3px rgba(183, 28, 28, 0.35);
+}
+.status-badge.kanryo {
+  background: #78909c;
+  color: #fff;
+  border: 1px solid #546e7a;
+  font-weight: 700;
+}
+
+/* 予定状態列：入荷/出荷列（.th-col-type / .td-type-cell）と同じ列幅・余白 */
+thead th.th-col-status,
+tbody td.td-col-status {
+  width: 75px;
+  max-width: 75px;
+  min-width: 0;
+  box-sizing: border-box;
+  vertical-align: middle;
+  text-align: center;
+}
+thead th.th-col-status {
+  padding: 6px 10px;
+}
+tbody td.td-col-status {
+  padding: 3px 10px;
+  white-space: nowrap;
+}
+
+/* 空行（入出荷なし） */
+tr.empty-day td { color: #bbb; }
+
+/* 今日の行 */
+tr.today .td-date {
+  border-left: 4px solid #2860A8 !important;
+  color: #92400E;
+  font-size: 16px;
+  font-weight: 900;
+}
+tr.today td {
+  padding-top: 10px;
+  padding-bottom: 10px;
+  font-size: 13px;
+}
+
+/* 操作ボタン */
+.op-btn {
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 3px;
+  padding: 2px 6px;
+  cursor: pointer;
+  font-size: 11px;
+  margin: 1px;
+}
+.op-btn.del   { color: #c62828; border-color: #ef9a9a; }
+.op-btn.del:hover  { background: #ffebee; }
+.op-btn.add-day {
+  color: #43a047;
+  border-color: #a5d6a7;
+  font-size: 14px;
+  padding: 1px 8px;
+}
+.op-btn.add-day:hover { background: #e8f5e9; }
+
+/* 工程表タスク行・手動登録行：背景は白（.sunday/.saturday 行色より詳細度高く上書き） */
+tr.row-from-task,
+tr.row-manual-delivery,
+tr.row-from-task.sunday,
+tr.row-from-task.saturday,
+tr.row-from-task.holiday,
+tr.row-manual-delivery.sunday,
+tr.row-manual-delivery.saturday,
+tr.row-manual-delivery.holiday {
+  background: #fff;
+}
+/* 工程表タスク行・手動登録行（セル内インライン編集）— 入荷/出荷列は折り返さない */
+tr.row-from-task td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+tr.row-manual-delivery td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+  background: #fff;
+  white-space: normal;
+  vertical-align: middle;
+}
+tr.row-from-task td.td-type-cell,
+tr.row-manual-delivery td.td-type-cell {
+  background: #fff;
+}
+tr.row-from-task td.td-col-status,
+tr.row-manual-delivery td.td-col-status {
+  background: #fff;
+  white-space: nowrap;
+}
+/* 行ホバー：平日空きと同じクールグレー #d5dae3 に統一 */
+tr.empty-day:hover {
+  background: #d5dae3;
+}
+/* タスク行：通常の td ルールより詳細度を上げないとホバーが列ごとに負ける */
+tr.row-from-task:hover,
+tr.row-manual-delivery:hover {
+  background: #d5dae3;
+}
+tr.row-from-task:hover td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
+tr.row-manual-delivery:hover td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
+  background: #d5dae3;
+}
+tr.row-from-task:hover td.td-type-cell,
+tr.row-manual-delivery:hover td.td-type-cell {
+  background: #d5dae3;
+}
+tr.row-from-task:hover td.td-col-status,
+tr.row-manual-delivery:hover td.td-col-status {
+  background: #d5dae3;
+}
+tr.row-from-task:hover .task-pick-control,
+tr.row-manual-delivery:hover .task-pick-control {
+  background: #d5dae3;
+}
+
+/* rowspan の日付・曜日は先頭行の td のみ — 同日の別行ホバー時は JS で付与 */
+.td-date.day-date-dow-hover,
+.td-dow.day-date-dow-hover {
+  background: #d5dae3 !important;
+}
+tr.row-from-task .task-inline-input.ghost,
+tr.row-manual-delivery .task-inline-input.ghost {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 12px;
+  padding: 2px 2px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+tr.row-from-task .task-inline-input.ghost:focus,
+tr.row-manual-delivery .task-inline-input.ghost:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: inset 0 -1px 0 #1976D2;
+}
+tr.row-from-task .task-inline-input.ghost:read-only,
+tr.row-manual-delivery .task-inline-input.ghost:read-only {
+  cursor: default;
+}
+tr.row-from-task .task-pick-wrap,
+tr.row-manual-delivery .task-pick-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 48px;
+  max-width: 100%;
+}
+tr.row-from-task .task-pick-display,
+tr.row-manual-delivery .task-pick-display {
+  border: none;
+  background: transparent;
+  padding: 2px 4px;
+  margin: 0;
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  width: 100%;
+  text-align: center;
+  color: inherit;
+}
+tr.row-from-task .task-pick-display.task-pick-status,
+tr.row-manual-delivery .task-pick-display.task-pick-status {
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+tr.row-from-task .task-pick-wrap[data-pick-wrap="status"],
+tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="status"] {
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
+}
+tr.row-from-task .task-pick-display:hover,
+tr.row-manual-delivery .task-pick-display:hover {
+  filter: brightness(0.92);
+}
+tr.row-from-task .task-pick-placeholder,
+tr.row-manual-delivery .task-pick-placeholder {
+  color: #aaa;
+  font-weight: 400;
+}
+tr.row-from-task .task-pick-control,
+tr.row-manual-delivery .task-pick-control {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  font: inherit;
+  font-size: 11px;
+  padding: 2px 4px;
+  border: 1px solid #90caf9;
+  border-radius: 3px;
+  background: #fff;
+}
+tr.row-from-task .task-source-tag {
+  display: inline-block;
+  font-size: 10px;
+  color: #5c6bc0;
+  font-weight: 700;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+/* 出荷日変更：操作列のボタンではなく備考のラベルから開く */
+tr.row-from-task .task-shipment-date-trigger {
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+  outline: none;
+}
+tr.row-from-task .task-shipment-date-trigger:hover {
+  background: #e8eaf6;
+}
+tr.row-from-task .task-shipment-date-trigger:focus-visible {
+  box-shadow: 0 0 0 2px rgba(92, 107, 192, 0.45);
+}
+tr.row-from-task .sales-rep-auto {
+  display: block;
+  font-size: 12px;
+  padding: 2px 2px;
+  color: #333;
+  cursor: default;
+  user-select: text;
+  text-align: center;
+}
+
+/* 今日の行：一覧セルの文字・操作系を少し大きく（.row-from-task より後・詳細度高く） */
+tr.today .op-btn {
+  font-size: 12px;
+  padding: 3px 7px;
+}
+tr.today .op-btn.add-day {
+  font-size: 16px;
+  padding: 2px 9px;
+}
+tr.today .type-badge,
+tr.today .status-badge {
+  font-size: 12px;
+  padding: 2px 7px;
+}
+tr.today.row-from-task .task-pick-display,
+tr.today.row-manual-delivery .task-pick-display {
+  font-size: 12px;
+}
+tr.today.row-from-task .task-pick-control,
+tr.today.row-manual-delivery .task-pick-control {
+  font-size: 12px;
+}
+tr.today.row-from-task .task-inline-input.ghost,
+tr.today.row-manual-delivery .task-inline-input.ghost {
+  font-size: 13px;
+}
+tr.today.row-from-task .sales-rep-auto,
+tr.today.row-manual-delivery .sales-rep-auto {
+  font-size: 13px;
+}
+tr.today.row-from-task .task-source-tag {
+  font-size: 11px;
+}
+tr.today .type-cell-right {
+  font-size: 14px;
+}
+
+/* 工程表完了行：入出荷なし行と同じ行色。input/button の UA 白を含め塗りを統一（後段ルールより後で確定） */
+tr.row-from-task.row-task-completed.weekday {
+  --comp-bg: #eeeeee;
+  --comp-hover-bg: #d5dae3;
+}
+tr.row-from-task.row-task-completed.saturday {
+  --comp-bg: #e3f2fd;
+  --comp-hover-bg: #d5dae3;
+}
+tr.row-from-task.row-task-completed.sunday,
+tr.row-from-task.row-task-completed.holiday {
+  --comp-bg: #fce4ec;
+  --comp-hover-bg: #d5dae3;
+}
+tr.row-from-task.row-task-completed,
+tr.row-from-task.row-task-completed td,
+tr.row-from-task.row-task-completed .type-cell-inner,
+tr.row-from-task.row-task-completed .type-cell-row,
+tr.row-from-task.row-task-completed .task-pick-wrap,
+tr.row-from-task.row-task-completed .task-pick-display,
+tr.row-from-task.row-task-completed .task-inline-input.ghost,
+tr.row-from-task.row-task-completed .task-inline-input.ghost:disabled,
+tr.row-from-task.row-task-completed button,
+tr.row-from-task.row-task-completed select,
+tr.row-from-task.row-task-completed .task-shipment-date-trigger,
+tr.row-from-task.row-task-completed .task-time-readonly,
+tr.row-from-task.row-task-completed .task-status-readonly {
+  background-color: var(--comp-bg) !important;
+  background-image: none !important;
+}
+tr.row-from-task.row-task-completed button,
+tr.row-from-task.row-task-completed select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+tr.row-from-task.row-task-completed td {
+  color: #999;
+}
+tr.row-from-task.row-task-completed .task-inline-input.ghost,
+tr.row-from-task.row-task-completed .task-inline-input.ghost:disabled {
+  color: #999;
+  -webkit-text-fill-color: #999;
+  opacity: 1;
+}
+tr.row-from-task.row-task-completed:hover,
+tr.row-from-task.row-task-completed:hover td,
+tr.row-from-task.row-task-completed:hover .type-cell-inner,
+tr.row-from-task.row-task-completed:hover .type-cell-row,
+tr.row-from-task.row-task-completed:hover .task-pick-wrap,
+tr.row-from-task.row-task-completed:hover .task-pick-display,
+tr.row-from-task.row-task-completed:hover .task-inline-input.ghost,
+tr.row-from-task.row-task-completed:hover .task-inline-input.ghost:disabled,
+tr.row-from-task.row-task-completed:hover button,
+tr.row-from-task.row-task-completed:hover select,
+tr.row-from-task.row-task-completed:hover .task-shipment-date-trigger,
+tr.row-from-task.row-task-completed:hover .task-time-readonly,
+tr.row-from-task.row-task-completed:hover .task-status-readonly {
+  background-color: var(--comp-hover-bg) !important;
+}
+tr.row-from-task.row-task-completed .task-span-day-badge {
+  color: #999;
+}
+tr.row-from-task.row-task-completed .type-badge.shukka {
+  background-color: #d0d0d0 !important;
+  color: #666;
+  border-color: #bdbdbd;
+}
+tr.row-from-task.row-task-completed .status-badge.kanryo {
+  background-color: #b0b0b0 !important;
+  color: #fff;
+  border-color: #9e9e9e;
+  box-shadow: none;
+}
+tr.row-from-task.row-task-completed .task-shipment-date-trigger {
+  pointer-events: none;
+  color: #999;
+  cursor: default;
+}
+tr.row-from-task.row-task-completed .task-status-readonly .status-badge {
+  cursor: default;
+}
+tr.row-from-task.row-task-completed .task-time-readonly {
+  color: #999;
+}
+tr.row-from-task.row-task-completed .sales-rep-auto {
+  color: #999;
+}
+tr.row-from-task.row-task-completed .task-source-tag {
+  color: #999;
+}
+tr.row-from-task.row-task-completed .task-inline-input.ghost:focus {
+  background-color: var(--comp-bg) !important;
+  box-shadow: none;
+}
+tr.row-from-task.row-task-completed:hover .task-inline-input.ghost:focus {
+  background-color: var(--comp-hover-bg) !important;
+}
+tr.row-from-task.row-task-completed .task-shipment-date-trigger:hover {
+  background-color: var(--comp-bg) !important;
+}
+tr.row-from-task.row-task-completed .task-shipment-date-trigger:focus-visible {
+  box-shadow: none;
+}
+
+/* 手動タスク完了行 */
+tr.row-manual-delivery.row-delivery-completed.weekday {
+  --comp-bg: #eeeeee;
+  --comp-hover-bg: #d5dae3;
+}
+tr.row-manual-delivery.row-delivery-completed.saturday {
+  --comp-bg: #e3f2fd;
+  --comp-hover-bg: #d5dae3;
+}
+tr.row-manual-delivery.row-delivery-completed.sunday,
+tr.row-manual-delivery.row-delivery-completed.holiday {
+  --comp-bg: #fce4ec;
+  --comp-hover-bg: #d5dae3;
+}
+tr.row-manual-delivery.row-delivery-completed,
+tr.row-manual-delivery.row-delivery-completed td,
+tr.row-manual-delivery.row-delivery-completed .type-cell-inner,
+tr.row-manual-delivery.row-delivery-completed .type-cell-row,
+tr.row-manual-delivery.row-delivery-completed .task-pick-wrap,
+tr.row-manual-delivery.row-delivery-completed .task-pick-display,
+tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost,
+tr.row-manual-delivery.row-delivery-completed button,
+tr.row-manual-delivery.row-delivery-completed select {
+  background-color: var(--comp-bg) !important;
+  background-image: none !important;
+}
+tr.row-manual-delivery.row-delivery-completed button,
+tr.row-manual-delivery.row-delivery-completed select {
+  -webkit-appearance: none;
+  appearance: none;
+}
+tr.row-manual-delivery.row-delivery-completed td {
+  color: #999;
+}
+tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost {
+  color: #999;
+  -webkit-text-fill-color: #999;
+  opacity: 1;
+}
+tr.row-manual-delivery.row-delivery-completed:hover,
+tr.row-manual-delivery.row-delivery-completed:hover td,
+tr.row-manual-delivery.row-delivery-completed:hover .type-cell-inner,
+tr.row-manual-delivery.row-delivery-completed:hover .type-cell-row,
+tr.row-manual-delivery.row-delivery-completed:hover .task-pick-wrap,
+tr.row-manual-delivery.row-delivery-completed:hover .task-pick-display,
+tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost,
+tr.row-manual-delivery.row-delivery-completed:hover button,
+tr.row-manual-delivery.row-delivery-completed:hover select {
+  background-color: var(--comp-hover-bg) !important;
+}
+tr.row-manual-delivery.row-delivery-completed .task-span-day-badge {
+  color: #999;
+}
+tr.row-manual-delivery.row-delivery-completed .type-badge {
+  background-color: #d0d0d0 !important;
+  color: #666;
+  border-color: #bdbdbd;
+}
+tr.row-manual-delivery.row-delivery-completed .status-badge.kanryo {
+  background-color: #b0b0b0 !important;
+  color: #fff;
+  border-color: #9e9e9e;
+  box-shadow: none;
+}
+tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost:focus {
+  background-color: var(--comp-bg) !important;
+  box-shadow: none;
+}
+tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:focus {
+  background-color: var(--comp-hover-bg) !important;
+}
+
+/* ローディング */
+.loading {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+  font-size: 14px;
+}
+
+/* ────── モーダル ────── */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+.modal-overlay.show { display: flex; }
+.modal {
+  background: white;
+  border-radius: 8px;
+  padding: 24px;
+  width: 520px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.modal h2 {
+  font-size: 15px;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #1976D2;
+  color: #1976D2;
+}
+/* 出荷日変更モーダル：工事番号を強調（フォントはメイリオ統一） */
+.task-date-modal-kouban {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  background: linear-gradient(145deg, #e8eaf6 0%, #e3f2fd 55%, #fff 100%);
+  border: 2px solid #5c6bc0;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.12);
+  font-family: "Meiryo", "メイリオ", sans-serif;
+}
+.task-date-modal-kouban-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 800;
+  color: #3949ab;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+}
+.task-date-modal-kouban-value {
+  display: block;
+  font-size: 26px;
+  font-weight: 800;
+  color: #0d47a1;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+  word-break: break-all;
+}
+.task-date-modal-help {
+  font-size: 12px;
+  color: #444;
+  margin: 0 0 14px;
+  line-height: 1.55;
+}
+.form-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: flex-start;
+}
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+}
+.form-group label {
+  font-size: 11px;
+  color: #666;
+  font-weight: 700;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  width: 100%;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #1976D2;
+  box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
+}
+.autofill-hint {
+  font-size: 10px;
+  color: #43a047;
+  margin-top: 2px;
+  display: block;
+}
+.autofill-hint-mark {
+  line-height: 1;
+  min-height: 12px;
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #eee;
+}
+.btn-save {
+  background: #1976D2;
+  color: white;
+  border: none;
+  padding: 7px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+.btn-save:hover { background: #1565C0; }
+.btn-cancel {
+  background: white;
+  color: #666;
+  border: 1px solid #ccc;
+  padding: 7px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.btn-cancel:hover { background: #f5f5f5; }
+
+/* 手動行：右クリックコンテキストメニュー */
+.delivery-ctx-menu {
+  position: fixed;
+  z-index: 260;
+  min-width: 160px;
+  padding: 4px 0;
+  margin: 0;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.18);
+}
+.delivery-ctx-item {
+  display: block;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  color: #333;
+}
+.delivery-ctx-item:hover {
+  background: #e3f2fd;
+}
+.delivery-ctx-item.delivery-ctx-danger {
+  color: #c62828;
+}
+.delivery-ctx-item.delivery-ctx-danger:hover {
+  background: #ffebee;
+}
+/* ─── 使い方ガイド ─── */
+#help_btn {
+  font-size: 13px;
+  padding: 1px 8px;
+  font-weight: bold;
+  color: #555;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f0f0f0;
+  transition: filter 0.15s;
+}
+#help_btn:hover { filter: brightness(0.88); }
+#help_btn:active { transform: translateY(1px); filter: brightness(0.82); }
+#help_btn.help-active { background: #1565c0; color: #fff; border-color: #1565c0; }
+#guide_btn {
+  position: fixed;
+  z-index: 200003;
+  padding: 5px 14px;
+  font-size: 13px;
+  font-weight: bold;
+  font-family: 'Noto Sans JP', 'メイリオ', Meiryo, sans-serif;
+  background: #ffffff;
+  color: #1565c0;
+  border: 2px solid #1565c0;
+  border-radius: 6px;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+  transform: translateY(-50%);
+}
+#guide_btn:hover { background: #1565c0; color: #fff; }
+.task-timeslot-editor { display: none; flex-direction: column; align-items: stretch; gap: 2px; width: 100%; overflow: hidden; }
+.task-timeslot-select { width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box; font: inherit; }
+.task-timeslot-custom { font: inherit; border: 1px solid #ccc; border-radius: 3px; padding: 1px 3px; box-sizing: border-box; width: 100%; max-width: 100%; min-width: 0; text-align: center; }
+tr.row-from-task .task-pick-wrap[data-pick-wrap="time_slot"],
+tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="time_slot"] { width: 100%; max-width: 100%; }
+#help_tips_container {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 200000;
+  pointer-events: none;
+}
+#help_tips_container.open { display: block; }
+#help_overlay_bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.52);
+  pointer-events: all;
+  cursor: default;
+}
+.help-highlight {
+  position: fixed;
+  z-index: 200001;
+  pointer-events: all;
+  cursor: help;
+  border-radius: 4px;
+  box-shadow: 0 0 0 2px rgba(255,255,255,0.55), 0 0 8px 2px rgba(100,170,255,0.45);
+  transition: box-shadow 0.18s;
+}
+.help-highlight:hover {
+  box-shadow: 0 0 0 3px #fff, 0 0 18px 6px rgba(80,160,255,0.9);
+}
+.help-tip {
+  position: fixed;
+  z-index: 200002;
+  pointer-events: none;
+  background: #fff;
+  border: 2px solid #1565c0;
+  border-radius: 6px;
+  padding: 7px 10px;
+  min-width: 150px;
+  max-width: 240px;
+  box-shadow: 0 3px 14px rgba(0,0,0,0.35);
+  font-size: 11px;
+  font-family: 'メイリオ', Meiryo, sans-serif;
+  line-height: 1.5;
+  color: #333;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s;
+}
+.help-tip--wide { max-width: min(420px, calc(100vw - 24px)); }
+.help-tip.tip-visible { opacity: 1; visibility: visible; }
+.help-tip-title { font-weight: bold; font-size: 12px; color: #1565c0; margin-bottom: 3px; }
+.help-tip::before {
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 12px;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 8px solid #1565c0;
+}
+.help-tip::after {
+  content: '';
+  position: absolute;
+  top: -5px;
+  left: 13px;
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-bottom: 6px solid #fff;
+}
+.help-tip.tip-above::before {
+  top: auto;
+  bottom: -8px;
+  border-bottom: none;
+  border-top: 8px solid #1565c0;
+}
+.help-tip.tip-above::after {
+  top: auto;
+  bottom: -5px;
+  border-bottom: none;
+  border-top: 6px solid #fff;
+}
