@@ -93,11 +93,6 @@ function escapeAttr(s) {
 
 /** 時間帯: 通常はテキスト表示、ダブルクリックでプルダウン */
 function taskTimeSlotPickCell(entry) {
-  if (entry._taskIsCompleted) {
-    const rawV = (entry.time_slot || '').trim();
-    const v = !rawV ? '未定' : rawV;
-    return `<span class="task-time-readonly" title="工程表で完了済みのため一覧からは変更できません">${escapeAttr(v)}</span>`;
-  }
   const rawV = (entry.time_slot || '').trim();
   const v = (!rawV && entry._fromTask) ? '未定' : rawV;
   const fixedOpts = ['午前', '午後', '未定'];
