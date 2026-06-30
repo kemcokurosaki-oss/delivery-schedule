@@ -16,8 +16,6 @@ function bindTableOverlayListeners() {
     }
   });
   tbody.addEventListener('dblclick', e => {
-    const trBlock = e.target.closest('tr.row-from-task');
-    if (trBlock && trBlock.dataset.taskCompleted === '1') return;
     const inp = e.target.closest('input.task-inline-input.ghost');
     if (inp && tbody.contains(inp)) {
       const tr = inp.closest('tr.row-from-task') || inp.closest('tr.row-manual-delivery');
