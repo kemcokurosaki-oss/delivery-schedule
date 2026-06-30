@@ -5,8 +5,6 @@ function bindTableOverlayListeners() {
   tbody.addEventListener('mousedown', e => {
     const inp = e.target.closest('input.task-inline-input.ghost');
     if (!inp || !tbody.contains(inp)) return;
-    const trG = inp.closest('tr.row-from-task');
-    if (trG && trG.dataset.taskCompleted === '1') return;
     if (inp.readOnly) e.preventDefault();
   }, true);
   tbody.addEventListener('click', e => {
