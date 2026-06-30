@@ -118,11 +118,6 @@ function taskTimeSlotPickCell(entry) {
 
 /** 予定状態: 通常は色付きバッジ、ダブルクリックでプルダウン */
 function taskStatusPickCell(entry) {
-  if (entry._taskIsCompleted) {
-    return `<div class="task-pick-wrap task-status-readonly" data-pick-wrap="status" title="工程表の「工場出荷」タスク完了チェックと連動">
-      <span class="status-badge kanryo">完了</span>
-    </div>`;
-  }
   const isK = entry.status === '確定';
   const isC = entry.status === '完了';
   const badge = isC
