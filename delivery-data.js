@@ -114,6 +114,7 @@ async function persistTaskRowOverlay(tr) {
         : row
     );
   }
+  if (wasCompleted) renderCalendar();
 }
 
 function gatherDeliveryPayloadFromRow(tr) {
