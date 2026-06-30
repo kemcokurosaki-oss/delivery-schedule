@@ -48,8 +48,15 @@ async function persistTaskRowOverlay(tr) {
       await loadAndRender();
       return;
     }
-    if (base) base._taskIsCompleted = true;
-    await loadAndRender();
+    if (base) {
+      base._taskIsCompleted = true;
+      taskShipments = taskShipments.map(row =>
+        row._fromTask && String(row._taskId) === String(taskId)
+          ? buildTaskShipmentDisplayRow(base, row.date, taskOverlaysMap.get(String(taskId)))
+          : row
+      );
+    }
+    renderCalendar();
     return;
   }
 
@@ -60,7 +67,9 @@ async function persistTaskRowOverlay(tr) {
       await loadAndRender();
       return;
     }
-    if (base) base._taskIsCompleted = false;
+    base._taskIsCompleted = false;
+    tr.classList.remove('row-task-completed');
+    delete tr.dataset.taskCompleted;
   }
 
   if (shouldDeleteOverlayRow(gathered)) {
