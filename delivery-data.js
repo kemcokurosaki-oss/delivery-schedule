@@ -34,12 +34,12 @@ function schedulePersistTaskOverlay(tr) {
 }
 
 async function persistTaskRowOverlay(tr) {
-  if (tr.dataset.taskCompleted === '1') return;
   const rawId = tr.dataset.taskId;
   const taskId = Number(rawId);
   if (!rawId || Number.isNaN(taskId)) return;
 
   const gathered = gatherOverlayPayloadFromRow(tr);
+  const base = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
 
   if (gathered.status === '完了') {
     const { error } = await sb.from('tasks').update({ is_completed: true }).eq('id', taskId);
@@ -48,10 +48,19 @@ async function persistTaskRowOverlay(tr) {
       await loadAndRender();
       return;
     }
-    const base = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
     if (base) base._taskIsCompleted = true;
     await loadAndRender();
     return;
+  }
+
+  if (base && base._taskIsCompleted) {
+    const { error } = await sb.from('tasks').update({ is_completed: false }).eq('id', taskId);
+    if (error) {
+      showToast('完了解除の保存に失敗しました: ' + error.message, 'error');
+      await loadAndRender();
+      return;
+    }
+    if (base) base._taskIsCompleted = false;
   }
 
   if (shouldDeleteOverlayRow(gathered)) {
