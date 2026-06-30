@@ -18,7 +18,7 @@ function gatherOverlayPayloadFromRow(tr) {
 function shouldDeleteOverlayRow(data) {
   const textKeys = ['time_slot', 'mfg_rep', 'product_name', 'note'];
   if (textKeys.some(k => data[k])) return false;
-  if (data.status === '確定' || data.status === '完了') return false;
+  if (data.status === '確定') return false;
   return true;
 }
 
