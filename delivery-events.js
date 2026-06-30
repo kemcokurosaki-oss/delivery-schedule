@@ -136,7 +136,6 @@ function bindTableOverlayListeners() {
     const trMan = t.closest('tr.row-manual-delivery');
     const tr = trTask || trMan;
     if (!tr) return;
-    if (trTask && trTask.dataset.taskCompleted === '1') return;
     if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
       collapseTaskPickSelect(t);
       if (trTask) schedulePersistTaskOverlay(trTask);
