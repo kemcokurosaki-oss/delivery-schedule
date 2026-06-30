@@ -11,7 +11,6 @@ function bindTableOverlayListeners() {
     const dateTrig = e.target.closest('.task-shipment-date-trigger');
     if (dateTrig) {
       const tr = dateTrig.closest('tr.row-from-task');
-      if (tr && tr.dataset.taskCompleted === '1') return;
       const tid = dateTrig.dataset.taskId;
       if (tid) openTaskShipmentDateModal(Number(tid));
     }
