@@ -41,7 +41,7 @@ async function persistTaskRowOverlay(tr) {
   const gathered = gatherOverlayPayloadFromRow(tr);
   const base = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
 
-  if (gathered.status === '完了') {
+  if (gathered.status === '完了' && !(base && base._taskIsCompleted)) {
     const { error } = await sb.from('tasks').update({ is_completed: true }).eq('id', taskId);
     if (error) {
       showToast('完了の保存に失敗しました: ' + error.message, 'error');
@@ -60,7 +60,8 @@ async function persistTaskRowOverlay(tr) {
     return;
   }
 
-  if (base && base._taskIsCompleted) {
+  let wasCompleted = false;
+  if (base && base._taskIsCompleted && gathered.status !== '完了') {
     const { error } = await sb.from('tasks').update({ is_completed: false }).eq('id', taskId);
     if (error) {
       showToast('完了解除の保存に失敗しました: ' + error.message, 'error');
@@ -70,6 +71,7 @@ async function persistTaskRowOverlay(tr) {
     base._taskIsCompleted = false;
     tr.classList.remove('row-task-completed');
     delete tr.dataset.taskCompleted;
+    wasCompleted = true;
   }
 
   if (shouldDeleteOverlayRow(gathered)) {
