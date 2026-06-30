@@ -297,6 +297,9 @@ function renderCalendar() {
             if (entry._taskIsCompleted) {
               tr.classList.add('row-task-completed');
               tr.dataset.taskCompleted = '1';
+            } else if (entry.status === '完了') {
+              tr.classList.add('row-delivery-completed');
+              tr.dataset.deliveryCompleted = '1';
             }
           } else {
             tr.dataset.deliveryId = String(entry.id);
