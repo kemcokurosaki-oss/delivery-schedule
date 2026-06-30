@@ -625,9 +625,7 @@ tr.row-from-task.row-task-completed .status-badge.kanryo {
   box-shadow: none;
 }
 tr.row-from-task.row-task-completed .task-shipment-date-trigger {
-  pointer-events: none;
   color: #999;
-  cursor: default;
 }
 tr.row-from-task.row-task-completed .task-status-readonly .status-badge {
   cursor: default;
