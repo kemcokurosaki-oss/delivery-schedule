@@ -95,13 +95,16 @@ function bindTableOverlayListeners() {
     else if (trMan) schedulePersistDelivery(trMan);
     if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
       collapseTaskPickSelect(t);
-      if (t.dataset.overlay === 'status' && trMan) {
-        if (t.value === '完了') {
-          trMan.classList.add('row-delivery-completed');
-          trMan.dataset.deliveryCompleted = '1';
-        } else {
-          trMan.classList.remove('row-delivery-completed');
-          delete trMan.dataset.deliveryCompleted;
+      if (t.dataset.overlay === 'status') {
+        const targetTr = trMan || trTask;
+        if (targetTr) {
+          if (t.value === '完了') {
+            targetTr.classList.add('row-delivery-completed');
+            targetTr.dataset.deliveryCompleted = '1';
+          } else {
+            targetTr.classList.remove('row-delivery-completed');
+            delete targetTr.dataset.deliveryCompleted;
+          }
         }
       }
     }
