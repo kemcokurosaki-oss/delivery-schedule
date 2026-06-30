@@ -112,7 +112,6 @@ function bindTableOverlayListeners() {
       if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
       const trTask2 = wrap.closest('tr.row-from-task');
       const trMan2 = wrap.closest('tr.row-manual-delivery');
-      if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
       collapseTimeslotEditor(wrap);
       if (trTask2) schedulePersistTaskOverlay(trTask2);
       else if (trMan2) schedulePersistDelivery(trMan2);
