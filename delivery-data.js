@@ -24,7 +24,7 @@ function shouldDeleteOverlayRow(data) {
 
 function schedulePersistTaskOverlay(tr) {
   const id = tr.dataset.taskId;
-  if (!id || tr.dataset.taskCompleted === '1') return;
+  if (!id) return;
   const prev = overlaySaveTimers.get(id);
   if (prev) clearTimeout(prev);
   overlaySaveTimers.set(id, setTimeout(() => {
