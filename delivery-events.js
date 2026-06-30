@@ -84,7 +84,6 @@ function bindTableOverlayListeners() {
     if (!t || !t.dataset || !t.dataset.overlay) return;
     const trTask = t.closest('tr.row-from-task');
     const trMan = t.closest('tr.row-manual-delivery');
-    if (trTask && trTask.dataset.taskCompleted === '1') return;
     if (trTask) schedulePersistTaskOverlay(trTask);
     else if (trMan) schedulePersistDelivery(trMan);
     if (t.tagName === 'SELECT' && t.classList.contains('task-pick-control')) {
