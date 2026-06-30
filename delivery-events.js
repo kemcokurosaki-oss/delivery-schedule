@@ -125,7 +125,6 @@ function bindTableOverlayListeners() {
       if (e.relatedTarget && wrap.contains(e.relatedTarget)) return;
       const trTask2 = wrap.closest('tr.row-from-task');
       const trMan2 = wrap.closest('tr.row-manual-delivery');
-      if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
       const hidden = wrap.querySelector('input[type="hidden"][data-overlay="time_slot"]');
       if (hidden) hidden.value = t.value.trim();
       collapseTimeslotEditor(wrap);
