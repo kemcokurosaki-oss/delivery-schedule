@@ -67,7 +67,6 @@ function bindTableOverlayListeners() {
       if (!wrap) return;
       const trTask2 = wrap.closest('tr.row-from-task');
       const trMan2 = wrap.closest('tr.row-manual-delivery');
-      if (trTask2 && trTask2.dataset.taskCompleted === '1') return;
       const custom = wrap.querySelector('.task-timeslot-custom');
       const hidden = wrap.querySelector('input[type="hidden"][data-overlay="time_slot"]');
       const effectiveVal = t.value === '__open_sentinel__' ? '' : t.value;
