@@ -40,6 +40,20 @@ async function persistTaskRowOverlay(tr) {
   if (!rawId || Number.isNaN(taskId)) return;
 
   const gathered = gatherOverlayPayloadFromRow(tr);
+
+  if (gathered.status === '完了') {
+    const { error } = await sb.from('tasks').update({ is_completed: true }).eq('id', taskId);
+    if (error) {
+      showToast('完了の保存に失敗しました: ' + error.message, 'error');
+      await loadAndRender();
+      return;
+    }
+    const base = taskShipmentBases.find(b => String(b._taskId) === String(taskId));
+    if (base) base._taskIsCompleted = true;
+    await loadAndRender();
+    return;
+  }
+
   if (shouldDeleteOverlayRow(gathered)) {
     if (!taskOverlaysMap.has(String(taskId))) return;
     const { error } = await sb.from('task_shipment_overlays').delete().eq('task_id', taskId);
