@@ -67,7 +67,7 @@ async function persistTaskRowOverlay(tr) {
     const payload = {
       task_id: taskId,
       time_slot: gathered.time_slot,
-      status: (gathered.status === '確定' || gathered.status === '完了') ? gathered.status : null,
+      status: gathered.status === '確定' ? '確定' : null,
       sales_rep: gathered.sales_rep,
       mfg_rep: gathered.mfg_rep,
       product_name: gathered.product_name,
