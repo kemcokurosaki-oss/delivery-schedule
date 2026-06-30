@@ -185,11 +185,7 @@ function collapseTaskPickSelect(sel) {
 function taskInlineTextInput(field, entry, extraStyle = '', extraClass = '') {
   const val = escapeAttr(entry[field] || '');
   const c = 'task-inline-input ghost' + (extraClass ? ' ' + extraClass : '');
-  const ro = entry._taskIsCompleted ? ' readonly disabled' : ' readonly';
-  const title = entry._taskIsCompleted
-    ? '工程表で完了済みのため一覧からは変更できません'
-    : 'ダブルクリックで編集';
-  return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}"${ro} title="${escapeAttr(title)}">`;
+  return `<input type="text" data-overlay="${field}" class="${c}" value="${val}" style="${extraStyle}" readonly title="ダブルクリックで編集">`;
 }
 
 /** 営業担当セル: 常に読み取り専用（DBから自動補完） */
