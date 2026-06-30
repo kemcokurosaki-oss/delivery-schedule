@@ -129,15 +129,13 @@ function taskStatusPickCell(entry) {
     </div>`;
   }
   const isK = entry.status === '確定';
-  const isC = !entry._fromTask && entry.status === '完了';
+  const isC = entry.status === '完了';
   const badge = isC
     ? '<span class="status-badge kanryo">完了</span>'
     : isK
       ? '<span class="status-badge kakutei">確定</span>'
       : '<span class="status-badge yotei">予定</span>';
-  const completedOption = !entry._fromTask
-    ? `<option value="完了"${isC ? ' selected' : ''}>完了</option>`
-    : '';
+  const completedOption = `<option value="完了"${isC ? ' selected' : ''}>完了</option>`;
   return `<div class="task-pick-wrap" data-pick-wrap="status">
     <button type="button" class="task-pick-display task-pick-status" aria-label="予定状態をダブルクリックで編集">${badge}</button>
     <select data-overlay="status" class="task-pick-control" style="display:none">` +
