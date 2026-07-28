@@ -371,7 +371,7 @@ function openHelp() {
     if (ttr.width > 0 && ttr.height > 0) {
       addHelpItem(container, {
         title: '[工程表] タグ',
-        text: '工程表の「工場出荷」タスクから自動取り込みされた行\nクリックすると工程表の出荷期間を直接変更できます',
+        text: '工程表の「工場出荷」「梱包出荷」タスクから自動取り込みされた行\nクリックすると工程表の出荷期間を直接変更できます',
         noBullets: true
       }, ttr);
     }
