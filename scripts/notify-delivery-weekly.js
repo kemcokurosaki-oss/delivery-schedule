@@ -295,6 +295,7 @@ async function main() {
       return {
         _fromTask: true,
         _taskId: t.id,
+        _taskText: t.text,
         _spanStart: span.start,
         _spanEnd: span.end,
         project_number: t.project_number,
