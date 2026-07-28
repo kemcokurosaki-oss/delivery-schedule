@@ -81,7 +81,8 @@ function deliveryTypePickCell(entry) {
 }
 
 function taskShipmentNoteTriggerHtml(entry) {
-  return `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷期間を変更"><span class="task-source-tag">[工程表]</span>工場出荷</span>`;
+  const label = entry._taskText || '工場出荷';
+  return `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷期間を変更"><span class="task-source-tag">[工程表]</span>${escapeAttr(label)}</span>`;
 }
 
 function escapeAttr(s) {
