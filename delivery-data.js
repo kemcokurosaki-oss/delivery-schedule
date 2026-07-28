@@ -277,7 +277,7 @@ async function loadAndRender() {
   // start_date 未使用のDBでは列追加が必要。終了日が表示範囲より後のタスクも拾い、期間と表示範囲の重なりで絞る
   const { data: taskData, error: taskErr } = await sb.from('tasks')
     .select('id, project_number, machine, text, start_date, end_date, is_completed')
-    .eq('text', '工場出荷')
+    .in('text', ['工場出荷', '梱包出荷'])
     .gte('end_date', startDate);
 
   if (taskErr) {
