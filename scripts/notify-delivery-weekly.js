@@ -277,9 +277,9 @@ async function main() {
     salesPersonMap = {};
   }
 
-  const factoryShip = encodeURIComponent('工場出荷');
+  const shipmentTaskTexts = ['工場出荷', '梱包出荷'].map(encodeURIComponent).join(',');
   const taskRows = await supabaseFetch(
-    `tasks?select=id,project_number,machine,text,start_date,end_date,is_completed&text=eq.${factoryShip}&end_date=gte.${winStart}`
+    `tasks?select=id,project_number,machine,text,start_date,end_date,is_completed&text=in.(${shipmentTaskTexts})&end_date=gte.${winStart}`
   );
 
   const metas = (taskRows || [])
