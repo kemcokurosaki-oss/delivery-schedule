@@ -4,9 +4,9 @@ const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJl
 const sb = supabase.createClient(S_URL, S_KEY);
 
 let deliveries   = [];
-/** 当月の tasks（text=工場出荷）メタ1件＝1タスク（日付展開前、_spanStart/_spanEnd） */
+/** 当月の tasks（text=工場出荷/梱包出荷）メタ1件＝1タスク（日付展開前、_spanStart/_spanEnd） */
 let taskShipmentBases = [];
-/** 当月の tasks（text=工場出荷）を一覧用に正規化した行（補完マージ済み） */
+/** 当月の tasks（text=工場出荷/梱包出荷）を一覧用に正規化した行（補完マージ済み） */
 let taskShipments = [];
 /** task_id → task_shipment_overlays の1行（当月に該当するタスクのみ） */
 let taskOverlaysMap = new Map();
