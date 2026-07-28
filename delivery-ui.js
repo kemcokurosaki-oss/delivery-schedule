@@ -58,7 +58,7 @@ async function saveTaskShipmentDate() {
     .from('tasks')
     .update({ start_date: span.start, end_date: span.end })
     .eq('id', taskId)
-    .eq('text', '工場出荷')
+    .in('text', ['工場出荷', '梱包出荷'])
     .select('id');
 
   if (error) {
