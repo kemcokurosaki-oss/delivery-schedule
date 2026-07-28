@@ -156,6 +156,7 @@ function buildTaskShipmentDisplayRow(meta, displayYmd, overlay) {
   const row = {
     _fromTask: true,
     _taskId: meta._taskId,
+    _taskText: meta._taskText,
     date: displayYmd,
     _spanStart: meta._spanStart,
     _spanEnd: meta._spanEnd,
