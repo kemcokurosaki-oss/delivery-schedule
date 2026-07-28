@@ -219,8 +219,10 @@ function formatEntryLine(entry) {
     ? (effectiveSlot === '未定' ? '時間未定' : effectiveSlot)
     : null;
   const typeStatus = `${entry.type || ''}${entry.status ? `(${entry.status})` : ''}`;
+  const taskTag = entry._fromTask ? `[${entry._taskText || '工場出荷'}]` : null;
   const parts = [
     typeStatus || null,
+    taskTag,
     timeDisplay,
     entry.project_number || null,
     entry.machine_unit || null,
