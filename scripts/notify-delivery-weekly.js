@@ -222,13 +222,13 @@ function formatEntryLine(entry) {
   const taskTag = entry._fromTask ? `[${entry._taskText || '工場出荷'}]` : null;
   const parts = [
     typeStatus || null,
-    taskTag,
     timeDisplay,
     entry.project_number || null,
     entry.machine_unit || null,
     entry.product_name || null,
     entry.sales_rep || null,
     entry.mfg_rep || null,
+    taskTag,
   ].filter(Boolean);
   return `  - ${parts.join(' ')}`;
 }
