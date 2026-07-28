@@ -67,7 +67,7 @@ CREATE POLICY "anon_write" ON deliveries FOR ALL USING (true);
 | `project_number` | 工番 | **リンクキー** |
 | `machine` | 機械ユニット | 工番入力時に自動補完 |
 | `major_item` | 製品名 | 工番入力時に自動補完 |
-| `text` | タスク名 | `'工場出荷'` のものの `end_date` が出荷予定日 |
+| `text` | タスク名 | `'工場出荷'` `'梱包出荷'` のものの `end_date` が出荷予定日（同一工番で両方存在する場合は別行として表示、リンク先列でどちらか判別） |
 | `end_date` | 終了日 | 出荷予定日として参照 |
 
 #### `holidays` テーブル（工程表と共用）
