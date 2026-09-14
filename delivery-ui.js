@@ -23,6 +23,10 @@ function openTaskShipmentDateModal(taskId) {
     showToast('工程表で完了済みのため、ここから出荷期間は変更できません', 'error');
     return;
   }
+  if (meta._shippingDateLocked) {
+    showToast('常務承認済みのため、ここから出荷期間は変更できません。承認フロー画面から変更してください', 'error');
+    return;
+  }
   document.getElementById('task-date-edit-id').value = idStr;
   document.getElementById('task-date-edit-start').value = meta._spanStart;
   document.getElementById('task-date-edit-end').value = meta._spanEnd;
