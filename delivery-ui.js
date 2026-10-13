@@ -24,7 +24,7 @@ function openTaskShipmentDateModal(taskId) {
     return;
   }
   if (meta._shippingDateLocked) {
-    showToast('常務承認済みのため、ここから出荷期間は変更できません。承認フロー画面から変更してください', 'error');
+    showToast('確定出荷日が入力済みのため、ここから出荷期間は変更できません。承認フロー画面から変更してください', 'error');
     return;
   }
   document.getElementById('task-date-edit-id').value = idStr;
