@@ -3,17 +3,15 @@
  * 「今週・翌週」（月曜〜日曜×2、Asia/Tokyo）の行を集め、Gmail で通知する。
  * 工程表で完了済みの出荷タスク（工場出荷／梱包出荷）は通知に含めない（一覧画面ではグレー表示のまま）。
  *
- * Secrets: SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD
+ * Secrets: SUPABASE_URL, SUPABASE_SECRET_KEY, メール送信用（scripts/mailer.js 参照）
  *          DELIVERY_NOTIFY_TO（任意・フォールバック。本番宛先は delivery_notify_recipients テーブル優先）
  * テストモード（TEST_MODE=true）の宛先: TEST_RECIPIENT_EMAIL（コード内定数）
  */
 
-const nodemailer = require('nodemailer');
+const { MAIL_PROVIDER, SENDER_ADDRESS, requireMailEnv, formatFrom, sendMail } = require('./mailer');
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_KEY = process.env.SUPABASE_SECRET_KEY;
-const GMAIL_USER = process.env.GMAIL_USER;
-const GMAIL_PASS = process.env.GMAIL_APP_PASSWORD;
 const NOTIFY_TO_RAW = process.env.DELIVERY_NOTIFY_TO || '';
 const TEST_MODE = process.env.TEST_MODE === 'true';
 
@@ -241,8 +239,8 @@ function weekLabelYmd(ymd) {
 async function main() {
   requireEnv('SUPABASE_URL', SUPABASE_URL);
   requireEnv('SUPABASE_SECRET_KEY', SUPABASE_KEY);
-  requireEnv('GMAIL_USER', GMAIL_USER);
-  requireEnv('GMAIL_APP_PASSWORD', GMAIL_PASS);
+  requireMailEnv();
+  console.log(`送信元: ${SENDER_ADDRESS}（${MAIL_PROVIDER}）`);
 
   let recipients = await loadRecipientsFromDb();
   if (recipients.length === 0) {
@@ -353,18 +351,13 @@ async function main() {
 
   const body = `${lines.join('\n')}\n\n※このメールは自動送信です。\n`;
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: GMAIL_USER, pass: GMAIL_PASS },
-  });
-
   const toList = TEST_MODE ? [TEST_RECIPIENT_EMAIL] : recipients;
   const subject =
     (TEST_MODE ? '【テスト】' : '') +
     `【入出荷予定】${weekLabelYmd(week1Mon)}週・翌週のお知らせ`;
 
-  await transporter.sendMail({
-    from: `"入出荷予定通知" <${GMAIL_USER}>`,
+  await sendMail({
+    from: formatFrom('入出荷予定通知'),
     to: toList.join(', '),
     subject,
     text: body,
