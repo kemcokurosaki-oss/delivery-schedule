@@ -198,7 +198,7 @@ function taskSalesRepCell(entry) {
 function typeBadge(type) {
   if (!type) return '';
   const cls = type === '入荷' ? 'nyuuka' : 'shukka';
-  return `<span class="type-badge ${cls}">${type}</span>`;
+  return `<span class="type-badge ${cls}">${escapeAttr(type)}</span>`;
 }
 
 function dowColor(dow, isHol) {
@@ -314,8 +314,8 @@ function renderCalendar() {
             <td class="td-type-cell">${typeCellInnerHtml(entry)}</td>
             <td style="text-align:center;">${taskTimeSlotPickCell(entry)}</td>
             <td class="td-col-status">${taskStatusPickCell(entry)}</td>
-            <td style="text-align:center;">${entry.project_number || ''}</td>
-            <td class="td-col-machine-unit">${entry.machine_unit || ''}</td>
+            <td style="text-align:center;">${escapeAttr(entry.project_number)}</td>
+            <td class="td-col-machine-unit">${escapeAttr(entry.machine_unit)}</td>
             <td>${taskInlineTextInput('product_name', entry)}</td>
             <td class="td-col-sales-rep">${taskSalesRepCell(entry)}</td>
             <td>${taskInlineTextInput('mfg_rep', entry)}</td>
