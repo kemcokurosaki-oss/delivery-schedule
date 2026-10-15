@@ -2,6 +2,7 @@ const S_URL = "https://dgekjzkrybrswsxlcbvh.supabase.co";
 const S_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRnZWtqemtyeWJyc3dzeGxjYnZoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njg4ODQ3MjIsImV4cCI6MjA4NDQ2MDcyMn0.BsEj53lV3p76yE9fMPTaLn7ocKTNzYPTqIAnBafYItU";
 
 const sb = supabase.createClient(S_URL, S_KEY);
+M365Login.init(sb, { appName: '入出荷一覧表' });
 
 let deliveries   = [];
 /** 当月の tasks（text=工場出荷/梱包出荷）メタ1件＝1タスク（日付展開前、_spanStart/_spanEnd） */
