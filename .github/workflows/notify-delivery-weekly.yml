@@ -1,6 +1,6 @@
 name: 入出荷予定週次通知
 # 必要な Repository secrets:
-#   SUPABASE_URL, SUPABASE_SECRET_KEY, GMAIL_USER, GMAIL_APP_PASSWORD
+#   SUPABASE_URL, SUPABASE_SECRET_KEY, M365_TENANT_ID, M365_CLIENT_ID, M365_CLIENT_SECRET, M365_SENDER
 #   DELIVERY_NOTIFY_TO（任意・DBに宛先が無いときのフォールバック）
 # 本番の宛先は Supabase テーブル delivery_notify_recipients（CSV取り込み）を優先します。
 #
@@ -36,10 +36,6 @@ jobs:
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-          GMAIL_USER: ${{ secrets.GMAIL_USER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          # gmail または graph（Microsoft 365 の共有メールボックスから送る）
-          MAIL_PROVIDER: graph
           M365_TENANT_ID: ${{ secrets.M365_TENANT_ID }}
           M365_CLIENT_ID: ${{ secrets.M365_CLIENT_ID }}
           M365_CLIENT_SECRET: ${{ secrets.M365_CLIENT_SECRET }}

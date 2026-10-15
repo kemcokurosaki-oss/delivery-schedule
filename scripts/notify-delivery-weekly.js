@@ -1,6 +1,6 @@
 /**
  * 入出荷予定一覧（index.html）と同じ二重排除ルールで
- * 「今週・翌週」（月曜〜日曜×2、Asia/Tokyo）の行を集め、Gmail で通知する。
+ * 「今週・翌週」（月曜〜日曜×2、Asia/Tokyo）の行を集め、メールで通知する（Microsoft 365 の共有メールボックスから送信）。
  * 工程表で完了済みの出荷タスク（工場出荷／梱包出荷）は通知に含めない（一覧画面ではグレー表示のまま）。
  *
  * Secrets: SUPABASE_URL, SUPABASE_SECRET_KEY, メール送信用（scripts/mailer.js 参照）
