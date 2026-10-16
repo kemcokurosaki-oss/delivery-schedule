@@ -36,13 +36,14 @@ button, input, select, textarea {
 }
 .nav-btn:hover { background: rgba(255,255,255,0.35); }
 .month-header {
-  background: #E6ECF5;
+  background: #DCE1E8;
   color: #1B3A6B;
   font-weight: 700;
   padding: 6px 12px;
   font-size: 14px;
   letter-spacing: 0.06em;
-  border-bottom: 1px solid #D5DBE4;
+  border-top: 2px solid #1B3A6B;
+  border-bottom: 1px solid #C5CCD7;
 }
 #current-month {
   font-size: 16px;
