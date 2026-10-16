@@ -1,7 +1,7 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   font-family: "BIZ UDPGothic", "BIZ UDPゴシック", "Meiryo", "メイリオ", sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   background: #F3F5F8;
   color: #1F2937;
 }
@@ -23,7 +23,7 @@ button, input, select, textarea {
   z-index: 100;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-.header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.04em; }
+.header h1 { font-size: 17px; font-weight: 700; letter-spacing: 0.04em; }
 #view-range { color: #DCE4F0; }
 .nav-btn {
   background: rgba(255,255,255,0.2);
@@ -32,7 +32,7 @@ button, input, select, textarea {
   padding: 4px 10px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
 }
 .nav-btn:hover { background: rgba(255,255,255,0.35); }
 .month-header {
@@ -40,12 +40,12 @@ button, input, select, textarea {
   color: #1B3A6B;
   font-weight: 700;
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 14px;
   letter-spacing: 0.06em;
   border-bottom: 1px solid #D5DBE4;
 }
 #current-month {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
   min-width: 100px;
   text-align: center;
@@ -64,7 +64,7 @@ button, input, select, textarea {
   background: transparent;
   color: white;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
 }
 .filter-btn.active { background: #fff; color: #1B3A6B; font-weight: 700; }
 .filter-btn:hover { background: rgba(255,255,255,0.2); }
@@ -82,7 +82,7 @@ button, input, select, textarea {
   overflow: hidden;
   margin: 0;
   padding: 0 16px;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   text-align: center;
   line-height: 1.45;
@@ -153,7 +153,7 @@ thead th {
   border-bottom: none;
   border-left: none;
   font-weight: 700;
-  font-size: 11px;
+  font-size: 12px;
   letter-spacing: 0.04em;
 }
 
@@ -171,7 +171,7 @@ tbody td {
 .td-date {
   text-align: center;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   background: inherit;
   border-right: 1px solid #D5DBE4 !important;
   min-width: 70px;
@@ -179,7 +179,7 @@ tbody td {
 .td-dow {
   text-align: center;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 13px;
   border-right: 1px solid #D5DBE4 !important;
   min-width: 30px;
 }
@@ -211,7 +211,7 @@ tr.saturday td.td-date, tr.saturday td.td-dow { background: #EEF4FC; }
   box-sizing: border-box;
   padding: 0 6px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -261,7 +261,7 @@ tbody td.td-type-cell {
   right: 2px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
   min-height: 1em;
   text-align: right;
@@ -273,7 +273,7 @@ tbody td.td-type-cell {
 }
 .type-cell-right .task-span-day-badge {
   pointer-events: auto;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #1F7A3E;
   line-height: 1;
@@ -289,7 +289,7 @@ tbody td.td-type-cell {
   box-sizing: border-box;
   padding: 0 6px;
   border-radius: 4px;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
@@ -336,7 +336,7 @@ tr.today td.td-dow {
   background: #1B3A6B !important;
   color: #fff !important;
 }
-tr.today .td-date { font-size: 14px; }
+tr.today .td-date { font-size: 15px; }
 .today-label {
   display: block;
   width: fit-content;
@@ -345,14 +345,14 @@ tr.today .td-date { font-size: 14px; }
   border-radius: 8px;
   background: #FFD86B;
   color: #1B3A6B;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   line-height: 15px;
 }
 tr.today td {
   padding-top: 9px;
   padding-bottom: 9px;
-  font-size: 13px;
+  font-size: 14px;
 }
 tr.today.empty-day { background: #FFFBEB; }
 
@@ -363,7 +363,7 @@ tr.today.empty-day { background: #FFFBEB; }
   border-radius: 3px;
   padding: 2px 6px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
   margin: 1px;
 }
 .op-btn.del   { color: #c62828; border-color: #ef9a9a; }
@@ -373,7 +373,7 @@ tr.today.empty-day { background: #FFFBEB; }
   border-color: #D5DBE4;
   background: #fff;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 14px;
   padding: 1px 6px;
 }
 .op-btn.add-day:hover { background: #E6ECF5; color: #1B3A6B; border-color: #A9B8CF; }
@@ -442,7 +442,7 @@ tr.row-manual-delivery .task-inline-input.ghost {
   max-width: 100%;
   box-sizing: border-box;
   font: inherit;
-  font-size: 12px;
+  font-size: 13px;
   padding: 2px 2px;
   border: none;
   border-radius: 0;
@@ -475,7 +475,7 @@ tr.row-manual-delivery .task-pick-display {
   padding: 2px 4px;
   margin: 0;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   width: 100%;
   text-align: center;
@@ -509,7 +509,7 @@ tr.row-manual-delivery .task-pick-control {
   max-width: 100%;
   box-sizing: border-box;
   font: inherit;
-  font-size: 11px;
+  font-size: 12px;
   padding: 2px 4px;
   border: 1px solid #90caf9;
   border-radius: 3px;
@@ -517,7 +517,7 @@ tr.row-manual-delivery .task-pick-control {
 }
 tr.row-from-task .task-source-tag {
   display: inline-block;
-  font-size: 10px;
+  font-size: 11px;
   color: #4A5A78;
   background: #EEF1F6;
   padding: 1px 5px;
@@ -542,7 +542,7 @@ tr.row-from-task .task-shipment-date-trigger:focus-visible {
 }
 tr.row-from-task .sales-rep-auto {
   display: block;
-  font-size: 12px;
+  font-size: 13px;
   padding: 2px 2px;
   color: #1F2937;
   cursor: default;
@@ -552,50 +552,41 @@ tr.row-from-task .sales-rep-auto {
 
 /* 今日の行：一覧セルの文字・操作系を少し大きく（.row-from-task より後・詳細度高く） */
 tr.today .op-btn {
-  font-size: 12px;
+  font-size: 13px;
   padding: 3px 7px;
 }
 tr.today .op-btn.add-day {
-  font-size: 16px;
+  font-size: 17px;
   padding: 2px 9px;
 }
 tr.today .type-badge,
 tr.today .status-badge {
-  font-size: 12px;
+  font-size: 13px;
   padding: 2px 7px;
 }
 tr.today.row-from-task .task-pick-display,
 tr.today.row-manual-delivery .task-pick-display {
-  font-size: 12px;
+  font-size: 13px;
 }
 tr.today.row-from-task .task-pick-control,
 tr.today.row-manual-delivery .task-pick-control {
-  font-size: 12px;
+  font-size: 13px;
 }
 tr.today.row-from-task .task-inline-input.ghost,
 tr.today.row-manual-delivery .task-inline-input.ghost {
-  font-size: 13px;
+  font-size: 14px;
 }
 tr.today.row-from-task .sales-rep-auto,
 tr.today.row-manual-delivery .sales-rep-auto {
-  font-size: 13px;
-}
-tr.today.row-from-task .task-source-tag {
-  font-size: 11px;
-}
-tr.today .type-cell-right {
   font-size: 14px;
 }
+tr.today.row-from-task .task-source-tag {
+  font-size: 12px;
+}
+tr.today .type-cell-right {
+  font-size: 15px;
+}
 
-/* 今日のデータ行：薄い黄色（白背景ルールより詳細度高く） */
-tr.today.row-from-task td:not(.td-date):not(.td-dow),
-tr.today.row-manual-delivery td:not(.td-date):not(.td-dow) {
-  background: #FFFBEB;
-}
-tr.today.row-from-task:hover td:not(.td-date):not(.td-dow),
-tr.today.row-manual-delivery:hover td:not(.td-date):not(.td-dow) {
-  background: #E8EDF5;
-}
 
 /* 工程表完了行：入出荷なし行と同じ行色。input/button の UA 白を含め塗りを統一（後段ルールより後で確定） */
 tr.row-from-task.row-task-completed.weekday {
@@ -776,7 +767,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   text-align: center;
   padding: 40px;
   color: #888;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 /* ────── モーダル ────── */
@@ -801,7 +792,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 .modal h2 {
-  font-size: 15px;
+  font-size: 16px;
   margin-bottom: 16px;
   padding-bottom: 8px;
   border-bottom: 2px solid #1976D2;
@@ -819,7 +810,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
 }
 .task-date-modal-kouban-label {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 800;
   color: #3949ab;
   letter-spacing: 0.12em;
@@ -827,7 +818,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
 }
 .task-date-modal-kouban-value {
   display: block;
-  font-size: 26px;
+  font-size: 27px;
   font-weight: 800;
   color: #0d47a1;
   letter-spacing: 0.06em;
@@ -835,7 +826,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   word-break: break-all;
 }
 .task-date-modal-help {
-  font-size: 12px;
+  font-size: 13px;
   color: #444;
   margin: 0 0 14px;
   line-height: 1.55;
@@ -853,7 +844,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   flex: 1;
 }
 .form-group label {
-  font-size: 11px;
+  font-size: 12px;
   color: #666;
   font-weight: 700;
 }
@@ -863,7 +854,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   border: 1px solid #ccc;
   border-radius: 4px;
   padding: 5px 8px;
-  font-size: 12px;
+  font-size: 13px;
   font-family: inherit;
   width: 100%;
 }
@@ -875,7 +866,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   box-shadow: 0 0 0 2px rgba(25,118,210,0.15);
 }
 .autofill-hint {
-  font-size: 10px;
+  font-size: 11px;
   color: #43a047;
   margin-top: 2px;
   display: block;
@@ -899,7 +890,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   padding: 7px 20px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
 }
 .btn-save:hover { background: #1565C0; }
@@ -910,7 +901,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   padding: 7px 16px;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
 }
 .btn-cancel:hover { background: #f5f5f5; }
 
@@ -934,7 +925,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   background: none;
   text-align: left;
   font: inherit;
-  font-size: 13px;
+  font-size: 14px;
   cursor: pointer;
   color: #333;
 }
@@ -949,7 +940,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
 }
 /* ─── 使い方ガイド ─── */
 #help_btn {
-  font-size: 12px;
+  font-size: 13px;
   padding: 4px 10px;
   font-weight: bold;
   color: #fff;
@@ -966,7 +957,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   position: fixed;
   z-index: 200003;
   padding: 5px 14px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: bold;
   font-family: inherit;
   background: #ffffff;
@@ -1023,7 +1014,7 @@ tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="time_slot"] { width: 100%
   min-width: 150px;
   max-width: 240px;
   box-shadow: 0 3px 14px rgba(0,0,0,0.35);
-  font-size: 11px;
+  font-size: 12px;
   font-family: inherit;
   line-height: 1.5;
   color: #333;
@@ -1033,7 +1024,7 @@ tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="time_slot"] { width: 100%
 }
 .help-tip--wide { max-width: min(420px, calc(100vw - 24px)); }
 .help-tip.tip-visible { opacity: 1; visibility: visible; }
-.help-tip-title { font-weight: bold; font-size: 12px; color: #1565c0; margin-bottom: 3px; }
+.help-tip-title { font-weight: bold; font-size: 13px; color: #1565c0; margin-bottom: 3px; }
 .help-tip::before {
   content: '';
   position: absolute;
@@ -1067,4 +1058,26 @@ tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="time_slot"] { width: 100%
   bottom: -5px;
   border-bottom: none;
   border-top: 6px solid #fff;
+}
+
+/* ─── 今日の行（他の行色ルールより必ず優先させるため末尾に配置） ─── */
+tbody tr.today.today[data-date] td.td-date,
+tbody tr.today.today[data-date] td.td-dow {
+  background: #1B3A6B !important;
+  background-color: #1B3A6B !important;
+  color: #fff !important;
+}
+tbody tr.today.today[data-date] td:not(.td-date):not(.td-dow) {
+  background: #FFFBEB !important;
+  background-color: #FFFBEB !important;
+}
+tbody tr.today.today[data-date]:hover td:not(.td-date):not(.td-dow) {
+  background: #E8EDF5 !important;
+  background-color: #E8EDF5 !important;
+}
+/* 今日の完了行：入力欄・ボタンの塗りも黄色に揃える */
+tr.today.row-task-completed,
+tr.today.row-delivery-completed {
+  --comp-bg: #FFFBEB !important;
+  --comp-hover-bg: #E8EDF5 !important;
 }
