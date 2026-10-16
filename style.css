@@ -1,9 +1,9 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  font-family: "Meiryo", "メイリオ", sans-serif;
+  font-family: "BIZ UDPGothic", "BIZ UDPゴシック", "Meiryo", "メイリオ", sans-serif;
   font-size: 12px;
-  background: #f5f5f5;
-  color: #333;
+  background: #F3F5F8;
+  color: #1F2937;
 }
 button, input, select, textarea {
   font-family: inherit;
@@ -13,16 +13,18 @@ button, input, select, textarea {
 .header {
   background: #1B3A6B;
   color: white;
-  padding: 8px 16px;
+  padding: 0 16px;
+  height: 48px;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
   position: sticky;
   top: 0;
   z-index: 100;
   box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
-.header h1 { font-size: 16px; font-weight: 700; margin-right: 8px; }
+.header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.04em; }
+#view-range { color: #DCE4F0; }
 .nav-btn {
   background: rgba(255,255,255,0.2);
   border: 1px solid rgba(255,255,255,0.4);
@@ -34,12 +36,13 @@ button, input, select, textarea {
 }
 .nav-btn:hover { background: rgba(255,255,255,0.35); }
 .month-header {
-  background: #2860A8;
-  color: white;
+  background: #E6ECF5;
+  color: #1B3A6B;
   font-weight: 700;
-  padding: 5px 10px;
+  padding: 6px 12px;
   font-size: 13px;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid #D5DBE4;
 }
 #current-month {
   font-size: 15px;
@@ -47,18 +50,25 @@ button, input, select, textarea {
   min-width: 100px;
   text-align: center;
 }
+.filter-group {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  background: rgba(255,255,255,0.12);
+  border-radius: 6px;
+}
 .filter-btn {
-  padding: 4px 10px;
+  padding: 4px 12px;
   border-radius: 4px;
-  border: 1px solid rgba(255,255,255,0.4);
-  background: rgba(255,255,255,0.15);
+  border: none;
+  background: transparent;
   color: white;
   cursor: pointer;
   font-size: 12px;
 }
-.filter-btn.active { background: rgba(255,255,255,0.9); color: #1B3A6B; font-weight: 700; }
-.filter-btn:hover { background: rgba(255,255,255,0.3); }
-.filter-btn.active:hover { background: rgba(255,255,255,0.95); }
+.filter-btn.active { background: #fff; color: #1B3A6B; font-weight: 700; }
+.filter-btn:hover { background: rgba(255,255,255,0.2); }
+.filter-btn.active:hover { background: #fff; }
 
 /* ページヘッダー直下に固定（一覧の自動スクロール後も表示が残る） */
 .save-banner {
@@ -111,9 +121,9 @@ button, input, select, textarea {
 }
 .table-gap {
   position: sticky;
-  top: 42px;
+  top: 48px;
   height: 12px;
-  background: #f5f5f5;
+  background: #F3F5F8;
   z-index: 9;
 }
 
@@ -123,38 +133,36 @@ table {
   table-layout: fixed;
   width: 1185px;
   background: white;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+  border: 1px solid #D5DBE4;
 }
 
 /* ヘッダー行 */
 thead {
   position: sticky;
-  top: 54px;
+  top: 60px;
   z-index: 10;
 }
 thead th {
-  background: #455A64;
+  background: #2E4A75;
   color: white;
-  padding: 6px 6px;
+  padding: 8px 6px;
   text-align: center;
   white-space: nowrap;
-  border-top: 1px solid #37474F;
-  border-right: 1px solid #37474F;
-  border-bottom: 1px solid #37474F;
+  border-top: none;
+  border-right: 1px solid #3E5A86;
+  border-bottom: none;
   border-left: none;
   font-weight: 700;
   font-size: 11px;
-}
-thead th:first-child {
-  border-left: 1px solid #37474F;
+  letter-spacing: 0.04em;
 }
 
 /* データ行 */
 tbody tr { }
 tbody td {
-  padding: 4px 6px;
-  border-right: 1px solid #e0e0e0;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 6px 8px;
+  border-right: 1px solid #E3E7ED;
+  border-bottom: 1px solid #E3E7ED;
   vertical-align: middle;
   white-space: nowrap;
 }
@@ -165,14 +173,14 @@ tbody td {
   font-weight: 700;
   font-size: 12px;
   background: inherit;
-  border-right: 2px solid #bbb !important;
+  border-right: 1px solid #D5DBE4 !important;
   min-width: 70px;
 }
 .td-dow {
   text-align: center;
   font-weight: 700;
   font-size: 12px;
-  border-right: 2px solid #bbb !important;
+  border-right: 1px solid #D5DBE4 !important;
   min-width: 30px;
 }
 
@@ -182,24 +190,33 @@ tbody td.td-col-sales-rep {
 }
 
 /* 行の色分け */
-tr.sunday  { background: #fce4ec; }
-tr.saturday { background: #e3f2fd; }
-tr.holiday  { background: #fce4ec; }
+tr.sunday  { background: #FCEEF1; }
+tr.saturday { background: #EEF4FC; }
+tr.holiday  { background: #FCEEF1; }
 tr.weekday  { background: white; }
 /* 入出荷なしの平日のみグレー（土日祝の行色はそのまま優先） */
-tr.empty-day.weekday { background: #eeeeee; }
+tr.empty-day.weekday { background: #F5F6F8; }
+/* 入出荷ありの土日祝：日付・曜日セルだけ行色を残す */
+tr.sunday td.td-date, tr.sunday td.td-dow,
+tr.holiday td.td-date, tr.holiday td.td-dow { background: #FCEEF1; }
+tr.saturday td.td-date, tr.saturday td.td-dow { background: #EEF4FC; }
 
 /* 入荷/出荷インジケーター */
 .type-badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border-radius: 4px;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
-.type-badge.nyuuka  { background: #fff3e0; color: #e65100; border: 1px solid #ffb74d; }
-.type-badge.shukka  { background: #e8f5e9; color: #2E7D32; border: 1px solid #a5d6a7; }
+.type-badge.nyuuka  { background: #FFF4E6; color: #B45309; border: 1px solid #F3C892; }
+.type-badge.shukka  { background: #EAF6EE; color: #1F7A3E; border: 1px solid #AED9BC; }
 /* 入荷/出荷：バッジは列の水平中央に固定、日数（1/3日）は右側に余裕を持って配置 */
 thead th.th-col-type,
 tbody td.td-type-cell {
@@ -256,39 +273,40 @@ tbody td.td-type-cell {
 }
 .type-cell-right .task-span-day-badge {
   pointer-events: auto;
-  font-size: 13px;
-  font-weight: 900;
-  color: #2E7D32;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1F7A3E;
   line-height: 1;
 }
 
 /* 予定状態バッジ（見た目は入荷/出荷の .type-badge と同寸・同タイポ） */
 .status-badge {
-  display: inline-block;
-  padding: 2px 6px;
-  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 6px;
+  border-radius: 4px;
   font-size: 11px;
   font-weight: 700;
   white-space: nowrap;
 }
 .status-badge.yotei {
-  background: #f5f5f5;
-  color: #757575;
-  border: 1px solid #e0e0e0;
-  font-weight: 600;
+  background: #fff;
+  color: #5B6474;
+  border: 1px solid #CBD2DC;
 }
 .status-badge.kakutei {
-  background: #c62828;
+  background: #1D4E89;
   color: #fff;
-  border: 1px solid #b71c1c;
-  font-weight: 800;
-  box-shadow: 0 1px 3px rgba(183, 28, 28, 0.35);
+  border: 1px solid #1D4E89;
 }
 .status-badge.kanryo {
-  background: #78909c;
-  color: #fff;
-  border: 1px solid #546e7a;
-  font-weight: 700;
+  background: #EEF0F3;
+  color: #8A94A3;
+  border: 1px solid #DDE1E7;
 }
 
 /* 予定状態列：入荷/出荷列（.th-col-type / .td-type-cell）と同じ列幅・余白 */
@@ -310,20 +328,33 @@ tbody td.td-col-status {
 }
 
 /* 空行（入出荷なし） */
-tr.empty-day td { color: #bbb; }
+tr.empty-day td { color: #9AA3AF; }
 
 /* 今日の行 */
-tr.today .td-date {
-  border-left: 4px solid #2860A8 !important;
-  color: #92400E;
-  font-size: 16px;
-  font-weight: 900;
+tr.today td.td-date,
+tr.today td.td-dow {
+  background: #1B3A6B !important;
+  color: #fff !important;
+}
+tr.today .td-date { font-size: 14px; }
+.today-label {
+  display: block;
+  width: fit-content;
+  margin: 2px auto 0;
+  padding: 0 6px;
+  border-radius: 8px;
+  background: #FFD86B;
+  color: #1B3A6B;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 15px;
 }
 tr.today td {
-  padding-top: 10px;
-  padding-bottom: 10px;
+  padding-top: 9px;
+  padding-bottom: 9px;
   font-size: 13px;
 }
+tr.today.empty-day { background: #FFFBEB; }
 
 /* 操作ボタン */
 .op-btn {
@@ -338,12 +369,14 @@ tr.today td {
 .op-btn.del   { color: #c62828; border-color: #ef9a9a; }
 .op-btn.del:hover  { background: #ffebee; }
 .op-btn.add-day {
-  color: #43a047;
-  border-color: #a5d6a7;
-  font-size: 14px;
-  padding: 1px 8px;
+  color: #8A96A8;
+  border-color: #D5DBE4;
+  background: #fff;
+  border-radius: 4px;
+  font-size: 13px;
+  padding: 1px 6px;
 }
-.op-btn.add-day:hover { background: #e8f5e9; }
+.op-btn.add-day:hover { background: #E6ECF5; color: #1B3A6B; border-color: #A9B8CF; }
 
 /* 工程表タスク行・手動登録行：背景は白（.sunday/.saturday 行色より詳細度高く上書き） */
 tr.row-from-task,
@@ -372,36 +405,36 @@ tr.row-manual-delivery td.td-col-status {
   background: #fff;
   white-space: nowrap;
 }
-/* 行ホバー：平日空きと同じクールグレー #d5dae3 に統一 */
+/* 行ホバー：平日空きと同じクールグレー #E8EDF5 に統一 */
 tr.empty-day:hover {
-  background: #d5dae3;
+  background: #E8EDF5;
 }
 /* タスク行：通常の td ルールより詳細度を上げないとホバーが列ごとに負ける */
 tr.row-from-task:hover,
 tr.row-manual-delivery:hover {
-  background: #d5dae3;
+  background: #E8EDF5;
 }
 tr.row-from-task:hover td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status),
 tr.row-manual-delivery:hover td:not(.td-date):not(.td-dow):not(.td-type-cell):not(.td-col-status) {
-  background: #d5dae3;
+  background: #E8EDF5;
 }
 tr.row-from-task:hover td.td-type-cell,
 tr.row-manual-delivery:hover td.td-type-cell {
-  background: #d5dae3;
+  background: #E8EDF5;
 }
 tr.row-from-task:hover td.td-col-status,
 tr.row-manual-delivery:hover td.td-col-status {
-  background: #d5dae3;
+  background: #E8EDF5;
 }
 tr.row-from-task:hover .task-pick-control,
 tr.row-manual-delivery:hover .task-pick-control {
-  background: #d5dae3;
+  background: #E8EDF5;
 }
 
 /* rowspan の日付・曜日は先頭行の td のみ — 同日の別行ホバー時は JS で付与 */
 .td-date.day-date-dow-hover,
 .td-dow.day-date-dow-hover {
-  background: #d5dae3 !important;
+  background: #E8EDF5 !important;
 }
 tr.row-from-task .task-inline-input.ghost,
 tr.row-manual-delivery .task-inline-input.ghost {
@@ -485,9 +518,12 @@ tr.row-manual-delivery .task-pick-control {
 tr.row-from-task .task-source-tag {
   display: inline-block;
   font-size: 10px;
-  color: #5c6bc0;
+  color: #4A5A78;
+  background: #EEF1F6;
+  padding: 1px 5px;
+  border-radius: 3px;
   font-weight: 700;
-  margin-right: 4px;
+  margin-right: 6px;
   vertical-align: middle;
 }
 /* 出荷日変更：操作列のボタンではなく備考のラベルから開く */
@@ -508,7 +544,7 @@ tr.row-from-task .sales-rep-auto {
   display: block;
   font-size: 12px;
   padding: 2px 2px;
-  color: #333;
+  color: #1F2937;
   cursor: default;
   user-select: text;
   text-align: center;
@@ -551,19 +587,29 @@ tr.today .type-cell-right {
   font-size: 14px;
 }
 
+/* 今日のデータ行：薄い黄色（白背景ルールより詳細度高く） */
+tr.today.row-from-task td:not(.td-date):not(.td-dow),
+tr.today.row-manual-delivery td:not(.td-date):not(.td-dow) {
+  background: #FFFBEB;
+}
+tr.today.row-from-task:hover td:not(.td-date):not(.td-dow),
+tr.today.row-manual-delivery:hover td:not(.td-date):not(.td-dow) {
+  background: #E8EDF5;
+}
+
 /* 工程表完了行：入出荷なし行と同じ行色。input/button の UA 白を含め塗りを統一（後段ルールより後で確定） */
 tr.row-from-task.row-task-completed.weekday {
-  --comp-bg: #eeeeee;
-  --comp-hover-bg: #d5dae3;
+  --comp-bg: #F5F6F8;
+  --comp-hover-bg: #E8EDF5;
 }
 tr.row-from-task.row-task-completed.saturday {
-  --comp-bg: #e3f2fd;
-  --comp-hover-bg: #d5dae3;
+  --comp-bg: #EEF4FC;
+  --comp-hover-bg: #E8EDF5;
 }
 tr.row-from-task.row-task-completed.sunday,
 tr.row-from-task.row-task-completed.holiday {
-  --comp-bg: #fce4ec;
-  --comp-hover-bg: #d5dae3;
+  --comp-bg: #FCEEF1;
+  --comp-hover-bg: #E8EDF5;
 }
 tr.row-from-task.row-task-completed,
 tr.row-from-task.row-task-completed td,
@@ -587,12 +633,12 @@ tr.row-from-task.row-task-completed select {
   appearance: none;
 }
 tr.row-from-task.row-task-completed td {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-from-task.row-task-completed .task-inline-input.ghost,
 tr.row-from-task.row-task-completed .task-inline-input.ghost:disabled {
-  color: #999;
-  -webkit-text-fill-color: #999;
+  color: #9AA3AF;
+  -webkit-text-fill-color: #9AA3AF;
   opacity: 1;
 }
 tr.row-from-task.row-task-completed:hover,
@@ -611,33 +657,33 @@ tr.row-from-task.row-task-completed:hover .task-status-readonly {
   background-color: var(--comp-hover-bg) !important;
 }
 tr.row-from-task.row-task-completed .task-span-day-badge {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-from-task.row-task-completed .type-badge.shukka {
-  background-color: #d0d0d0 !important;
-  color: #666;
-  border-color: #bdbdbd;
+  background-color: #EEF0F3 !important;
+  color: #9AA3AF;
+  border-color: #DDE1E7;
 }
 tr.row-from-task.row-task-completed .status-badge.kanryo {
-  background-color: #b0b0b0 !important;
-  color: #fff;
-  border-color: #9e9e9e;
+  background-color: #EEF0F3 !important;
+  color: #8A94A3;
+  border-color: #DDE1E7;
   box-shadow: none;
 }
 tr.row-from-task.row-task-completed .task-shipment-date-trigger {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-from-task.row-task-completed .task-status-readonly .status-badge {
   cursor: default;
 }
 tr.row-from-task.row-task-completed .task-time-readonly {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-from-task.row-task-completed .sales-rep-auto {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-from-task.row-task-completed .task-source-tag {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-from-task.row-task-completed .task-inline-input.ghost:focus {
   background-color: var(--comp-bg) !important;
@@ -655,17 +701,17 @@ tr.row-from-task.row-task-completed .task-shipment-date-trigger:focus-visible {
 
 /* 手動タスク完了行 */
 tr.row-manual-delivery.row-delivery-completed.weekday {
-  --comp-bg: #eeeeee;
-  --comp-hover-bg: #d5dae3;
+  --comp-bg: #F5F6F8;
+  --comp-hover-bg: #E8EDF5;
 }
 tr.row-manual-delivery.row-delivery-completed.saturday {
-  --comp-bg: #e3f2fd;
-  --comp-hover-bg: #d5dae3;
+  --comp-bg: #EEF4FC;
+  --comp-hover-bg: #E8EDF5;
 }
 tr.row-manual-delivery.row-delivery-completed.sunday,
 tr.row-manual-delivery.row-delivery-completed.holiday {
-  --comp-bg: #fce4ec;
-  --comp-hover-bg: #d5dae3;
+  --comp-bg: #FCEEF1;
+  --comp-hover-bg: #E8EDF5;
 }
 tr.row-manual-delivery.row-delivery-completed,
 tr.row-manual-delivery.row-delivery-completed td,
@@ -685,11 +731,11 @@ tr.row-manual-delivery.row-delivery-completed select {
   appearance: none;
 }
 tr.row-manual-delivery.row-delivery-completed td {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost {
-  color: #999;
-  -webkit-text-fill-color: #999;
+  color: #9AA3AF;
+  -webkit-text-fill-color: #9AA3AF;
   opacity: 1;
 }
 tr.row-manual-delivery.row-delivery-completed:hover,
@@ -704,17 +750,17 @@ tr.row-manual-delivery.row-delivery-completed:hover select {
   background-color: var(--comp-hover-bg) !important;
 }
 tr.row-manual-delivery.row-delivery-completed .task-span-day-badge {
-  color: #999;
+  color: #9AA3AF;
 }
 tr.row-manual-delivery.row-delivery-completed .type-badge {
-  background-color: #d0d0d0 !important;
-  color: #666;
-  border-color: #bdbdbd;
+  background-color: #EEF0F3 !important;
+  color: #9AA3AF;
+  border-color: #DDE1E7;
 }
 tr.row-manual-delivery.row-delivery-completed .status-badge.kanryo {
-  background-color: #b0b0b0 !important;
-  color: #fff;
-  border-color: #9e9e9e;
+  background-color: #EEF0F3 !important;
+  color: #8A94A3;
+  border-color: #DDE1E7;
   box-shadow: none;
 }
 tr.row-manual-delivery.row-delivery-completed .task-inline-input.ghost:focus {
@@ -761,7 +807,7 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   border-bottom: 2px solid #1976D2;
   color: #1976D2;
 }
-/* 出荷日変更モーダル：工事番号を強調（フォントはメイリオ統一） */
+/* 出荷日変更モーダル：工事番号を強調 */
 .task-date-modal-kouban {
   margin: 0 0 14px;
   padding: 14px 16px;
@@ -770,7 +816,6 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
   border-radius: 10px;
   text-align: center;
   box-shadow: 0 2px 8px rgba(25, 118, 210, 0.12);
-  font-family: "Meiryo", "メイリオ", sans-serif;
 }
 .task-date-modal-kouban-label {
   display: block;
@@ -904,26 +949,26 @@ tr.row-manual-delivery.row-delivery-completed:hover .task-inline-input.ghost:foc
 }
 /* ─── 使い方ガイド ─── */
 #help_btn {
-  font-size: 13px;
-  padding: 1px 8px;
+  font-size: 12px;
+  padding: 4px 10px;
   font-weight: bold;
-  color: #555;
+  color: #fff;
   cursor: pointer;
-  border: 1px solid #ccc;
+  border: 1px solid rgba(255,255,255,0.4);
   border-radius: 4px;
-  background: #f0f0f0;
-  transition: filter 0.15s;
+  background: transparent;
+  transition: background 0.15s;
 }
-#help_btn:hover { filter: brightness(0.88); }
-#help_btn:active { transform: translateY(1px); filter: brightness(0.82); }
-#help_btn.help-active { background: #1565c0; color: #fff; border-color: #1565c0; }
+#help_btn:hover { background: rgba(255,255,255,0.15); }
+#help_btn:active { transform: translateY(1px); }
+#help_btn.help-active { background: #fff; color: #1B3A6B; border-color: #fff; }
 #guide_btn {
   position: fixed;
   z-index: 200003;
   padding: 5px 14px;
   font-size: 13px;
   font-weight: bold;
-  font-family: 'Noto Sans JP', 'メイリオ', Meiryo, sans-serif;
+  font-family: inherit;
   background: #ffffff;
   color: #1565c0;
   border: 2px solid #1565c0;
@@ -979,7 +1024,7 @@ tr.row-manual-delivery .task-pick-wrap[data-pick-wrap="time_slot"] { width: 100%
   max-width: 240px;
   box-shadow: 0 3px 14px rgba(0,0,0,0.35);
   font-size: 11px;
-  font-family: 'メイリオ', Meiryo, sans-serif;
+  font-family: inherit;
   line-height: 1.5;
   color: #333;
   opacity: 0;

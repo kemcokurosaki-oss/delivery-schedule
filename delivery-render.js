@@ -82,7 +82,7 @@ function deliveryTypePickCell(entry) {
 
 function taskShipmentNoteTriggerHtml(entry) {
   const label = entry._taskText || '工場出荷';
-  return `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷期間を変更"><span class="task-source-tag">[工程表]</span>${escapeAttr(label)}</span>`;
+  return `<span class="task-shipment-date-trigger" data-task-id="${entry._taskId}" role="button" tabindex="0" title="クリックで工程表の出荷期間を変更"><span class="task-source-tag">工程表</span>${escapeAttr(label)}</span>`;
 }
 
 function escapeAttr(s) {
@@ -202,9 +202,9 @@ function typeBadge(type) {
 }
 
 function dowColor(dow, isHol) {
-  if (dow === 0 || isHol) return '#c62828';
-  if (dow === 6) return '#1565C0';
-  return '#333';
+  if (dow === 0 || isHol) return '#C8323C';
+  if (dow === 6) return '#1F5FAD';
+  return '#4B5563';
 }
 
 /** 同日・同工事番号の手動出荷があれば工程表タスク行は二重表示しない */
@@ -265,7 +265,7 @@ function renderCalendar() {
         tr.className = rowClass + ' empty-day' + (dateStr === todayStr ? ' today' : '');
         tr.dataset.date = dateStr;
         tr.innerHTML = `
-          <td class="td-date">${m}/${d}</td>
+          <td class="td-date">${m}/${d}${dateStr === todayStr ? '<span class="today-label">今日</span>' : ''}</td>
           <td class="td-dow" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>
           <td colspan="10"></td>
           <td style="text-align:center;">
@@ -300,7 +300,7 @@ function renderCalendar() {
           }
           tr.dataset.date = dateStr;
           const dateCell = idx === 0
-            ? `<td class="td-date" rowspan="${dayEntries.length}">${m}/${d}</td>
+            ? `<td class="td-date" rowspan="${dayEntries.length}">${m}/${d}${dateStr === todayStr ? '<span class="today-label">今日</span>' : ''}</td>
                <td class="td-dow" rowspan="${dayEntries.length}" style="color:${dowColor(dow, isHol)}">${DOW_NAMES[dow]}</td>`
             : '';
           const linkCell = fromTask ? taskShipmentNoteTriggerHtml(entry) : '';

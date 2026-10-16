@@ -33,7 +33,7 @@
 
     const CSS = `
 #m365_login_overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, .55); z-index: 2147483000;
-    display: none; align-items: center; justify-content: center; font-family: 'メイリオ', Meiryo, sans-serif; }
+    display: none; align-items: center; justify-content: center; font-family: inherit; }
 #m365_login_overlay.open { display: flex; }
 #m365_login_dialog { background: #fff; border-radius: 10px; padding: 28px 26px; width: 320px; box-shadow: 0 12px 40px rgba(0,0,0,.3); }
 #m365_login_dialog h2 { margin: 0 0 18px; font-size: 15px; text-align: center; color: #333; }
@@ -48,18 +48,18 @@
 #m365_login_dialog .m365-pw-btn { width: 100%; padding: 9px; background: #3498db; color: #fff; border: none; border-radius: 4px;
     font-size: 13px; cursor: pointer; font-family: inherit; }
 #m365_login_dialog .m365-error { color: #e74c3c; font-size: 12px; margin-top: 10px; min-height: 0; }
-#m365_user_chip { position: relative; display: none; align-items: center; margin-left: 6px; vertical-align: middle;
-    font-family: 'メイリオ', Meiryo, sans-serif; }
+#m365_user_chip { position: relative; display: none; align-items: center; margin-left: 12px; vertical-align: middle;
+    font-family: inherit; }
 #m365_user_chip.m365-floating { position: fixed; bottom: 10px; z-index: 2147482000; margin: 0; }
 #m365_user_chip.m365-floating-right { right: 10px; }
 #m365_user_chip.m365-floating-left { left: 10px; }
 #m365_user_btn { height: 28px; max-width: 200px; border: none; background: transparent; color: inherit;
-    display: inline-flex; align-items: center; gap: 6px; cursor: pointer; padding: 0 4px 0 0; font-size: 12px; font-family: inherit; }
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer; padding: 0 4px 0 0; font-size: 12px; font-weight: bold; font-family: inherit; }
 #m365_user_btn .m365-user-icon { width: 26px; height: 26px; border-radius: 50%; border: 1px solid #c8cfda; background: #fff;
     color: #2f6fb0; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
 #m365_user_btn:hover .m365-user-icon { background: #f3f6fa; }
 #m365_user_btn .m365-user-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-#m365_user_menu { display: none; position: fixed; z-index: 2147482001; min-width: 220px; max-width: 320px;
+#m365_user_menu { font-family: inherit; display: none; position: fixed; z-index: 2147482001; min-width: 220px; max-width: 320px;
     background: #fff; border: 1px solid #d0d7e2; border-radius: 8px; padding: 10px 12px; box-shadow: 0 6px 20px rgba(0,0,0,.18);
     font-size: 12px; color: #333; text-align: left; }
 #m365_user_menu.open { display: block; }

@@ -8,6 +8,9 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text x='50' y='75' font-size='80' text-anchor='middle'>🚚</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js" integrity="sha384-BWcjm9OdFth9TbhCxZPdm+gAOUMAzQy9nmTs12ioXdCcbVnJaPMn+fMUoQCLt60R" crossorigin="anonymous"></script>
   <script src="m365-login.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -15,8 +18,8 @@
 <!-- ヘッダー -->
 <div class="header">
   <h1>入・出荷予定一覧</h1>
-  <span id="view-range" style="font-size:14px; font-weight:700; min-width:200px; text-align:center;">読み込み中...</span>
-  <span style="margin-left:8px; display:flex; gap:4px;">
+  <span id="view-range" style="font-size:14px; font-weight:700;">読み込み中...</span>
+  <span class="filter-group">
     <button class="filter-btn active" id="filter-all"    onclick="setFilter('all')">全表示</button>
     <button class="filter-btn"        id="filter-nyuuka" onclick="setFilter('入荷')">入荷のみ</button>
     <button class="filter-btn"        id="filter-shukka" onclick="setFilter('出荷')">出荷のみ</button>
