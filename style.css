@@ -235,6 +235,12 @@ tbody td.td-type-cell {
   padding: 3px 6px;
   white-space: nowrap;
 }
+/* 入出荷がある行（今日以外）は行の高さを 35px に（入出荷なしの行は 33px のまま） */
+tr.row-from-task:not(.today) td.td-type-cell,
+tr.row-manual-delivery:not(.today) td.td-type-cell {
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
 .type-cell-row {
   display: block;
   width: 100%;
