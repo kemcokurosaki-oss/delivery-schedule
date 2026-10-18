@@ -202,4 +202,4 @@ CREATE POLICY "anon_write" ON deliveries FOR ALL USING (true);
 - [ ] 工程表の「工場出荷」タスクから出荷エントリを一括生成するボタン
 - [ ] Excel エクスポート機能
 - [ ] 印刷レイアウト（@media print）
-- [ ] ログイン認証（工程表と同じ auth 機構を流用）
+- [x] ログイン認証（2026-10-19〜 Microsoft 365 ログイン必須。m365-login.js。編集はログインした社員なら誰でも）
